@@ -28,23 +28,17 @@ public class FilmController {
 
     @PostMapping
     public Film addFilm(@Valid @RequestBody Film film) {
-        log.info("Начало валидации информации о добавляемом фильме");
-        if (checkNameDuplicate(film)) {
-            log.error("Ошибка валидации: фильм {} уже существует", film.getName());
-            throw new DuplicateException("Фильм с таким названием уже существует");
-        }
-        if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
-            log.error("Ошибка валидации:Дата релиза должна быть не раньше 28.12.1895г");
-            throw new ConditionsNotMetException("Дата релиза должна быть не раньше 28.12.1895г");
-        }
+        validateFilm(film);
+        validateFilmNameDuplicate(film);
         film.setId(calcNextId());
         films.put(film.getId(), film);
-        log.info("Валидация прошла успешно. Добавлен новый фильм {}", film.getName());
+        log.info("Добавлен новый фильм {}", film.getName());
         return film;
     }
 
     @PutMapping
-    public Film updateFilm(@RequestBody Film film) {
+    public Film updateFilm(@Valid @RequestBody Film film) {
+        validateFilm(film);
         Integer id = film.getId();
         if (id == null) {
             log.error("Не задан id");
@@ -53,7 +47,7 @@ public class FilmController {
         if (films.containsKey(id)) {
             Film oldFilm = films.get(id);
             log.info("Начало обновления информации о фильме {}", oldFilm.getName());
-            if (film.getName() != null && !film.getName().isBlank()) {
+            if (!oldFilm.getName().equals(film.getName())) {
                 log.debug("Обновление названия");
                 oldFilm.setName(film.getName());
             }
@@ -61,10 +55,8 @@ public class FilmController {
                 log.debug("Обновление описания");
                 oldFilm.setDescription(film.getDescription());
             }
-            if (film.getReleaseDate() != null) {
-                log.debug("Обновление даты релиза");
-                oldFilm.setReleaseDate(film.getReleaseDate());
-            }
+            log.debug("Обновление даты релиза");
+            oldFilm.setReleaseDate(film.getReleaseDate());
             if (film.getDuration() != null) {
                 log.debug("Обновление информации о продолжительности фильма");
                 oldFilm.setDuration(film.getDuration());
@@ -75,6 +67,24 @@ public class FilmController {
             log.error("Фильм с таким id не найден");
             throw new NotFoundException("Фильм с таким id не найден");
         }
+    }
+
+    private void validateFilm(Film film) {
+        log.info("Начало валидации информации о добавляемом фильме");
+        if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
+            log.error("Ошибка валидации:Дата релиза должна быть не раньше 28.12.1895г");
+            throw new ConditionsNotMetException("Дата релиза должна быть не раньше 28.12.1895г");
+        }
+        log.info("Валидация прошла успешно");
+    }
+
+    private void validateFilmNameDuplicate(Film film) {
+        log.info("Проверка уникальности названия фильма");
+        if (checkNameDuplicate(film)) {
+            log.error("Ошибка валидации: фильм {} уже существует", film.getName());
+            throw new DuplicateException("Фильм с таким названием уже существует");
+        }
+        log.info("Проверка прошла успешно");
     }
 
     private Integer calcNextId() {

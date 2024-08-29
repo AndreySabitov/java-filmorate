@@ -50,7 +50,7 @@ class FilmControllerTest {
     }
 
     @Test
-    void filmControllerCanUpdateInformationAbout() {
+    void filmControllerCanUpdateInformationAboutFilm() {
         filmController.addFilm(Film.builder().name("name").description("description")
                 .releaseDate(LocalDate.of(2020, 10, 20)).duration(90).build());
         Film updatedFilm = Film.builder().id(1).name("name1").description("description1")
@@ -71,13 +71,5 @@ class FilmControllerTest {
         Film updatedFilm = Film.builder().id(1).name("name1").description("description1")
                 .releaseDate(LocalDate.of(2019, 10, 20)).duration(90).build();
         assertThrows(NotFoundException.class, () -> filmController.updateFilm(updatedFilm));
-    }
-
-    @Test
-    void filmControllerNotChangeInformationAboutFilmIfAllFieldsIsNull() {
-        Film film = filmController.addFilm(Film.builder().name("name").description("description")
-                .releaseDate(LocalDate.of(2020, 10, 20)).duration(90).build());
-        Film updatedFilm = filmController.updateFilm(Film.builder().id(1).build());
-        assertEquals(film, updatedFilm);
     }
 }

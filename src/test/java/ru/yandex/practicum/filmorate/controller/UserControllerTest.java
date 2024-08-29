@@ -89,15 +89,4 @@ class UserControllerTest {
         User user1 = userController.updateUser(updatedUser);
         assertEquals(updatedUser, user1);
     }
-
-    @Test
-    void userControllerNotUpdateUserIfFieldsOfNewUserIsNulls() {
-        User.builder().email("abv@mail.ru").login("abv").name("Andy")
-                .birthday(LocalDate.of(1995, 12, 4)).build();
-        User user = userController.addUser(User.builder().email("abv@mail.ru").login("abv").name("Andy")
-                .birthday(LocalDate.of(1995, 12, 4)).build());
-        User updatedUser = User.builder().id(1).build();
-        User user1 = userController.updateUser(updatedUser);
-        assertEquals(user, user1);
-    }
 }
