@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.service;
+package ru.yandex.practicum.filmorate.storage;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -6,23 +6,21 @@ import ru.yandex.practicum.filmorate.exception.DuplicateException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class UserServiceTest {
+class UserStorageTest {
     UserStorage userStorage;
 
     @BeforeEach
-    void initUserController() {
+    void initUserStorage() {
         userStorage = new InMemoryUserStorage();
     }
 
     @Test
-    void userControllerCanReturnUsersList() {
+    void userStorageCanReturnUsersList() {
         User user = User.builder().email("abv@mail.ru").login("abv").name("Andy")
                 .birthday(LocalDate.of(1995, 12, 4)).build();
         userStorage.addUser(user);
@@ -30,7 +28,7 @@ class UserServiceTest {
     }
 
     @Test
-    void userControllerCanAddNewUser() {
+    void userStorageCanAddNewUser() {
         User user = User.builder().email("abv@mail.ru").login("abv").name("Andy")
                 .birthday(LocalDate.of(1995, 12, 4)).build();
         User user1 = userStorage.addUser(user);
@@ -38,7 +36,7 @@ class UserServiceTest {
     }
 
     @Test
-    void userControllerCantAddNewUserIfEmailDuplicate() {
+    void userStorageCantAddNewUserIfEmailDuplicate() {
         User user = User.builder().email("abv@mail.ru").login("abv").name("Andy")
                 .birthday(LocalDate.of(1995, 12, 4)).build();
         User user1 = User.builder().email("abv@mail.ru").name("vba").login("vba")
@@ -50,14 +48,14 @@ class UserServiceTest {
     }
 
     @Test
-    void userControllerCantAddNewUserIfLoginContainWhitespace() {
+    void userStorageCantAddNewUserIfLoginContainWhitespace() {
         User user = User.builder().email("abv@mail.ru").login("a bv").name("Andy")
                 .birthday(LocalDate.of(1995, 12, 4)).build();
         assertThrows(ValidationException.class, () -> userStorage.addUser(user));
     }
 
     @Test
-    void userControllerWriteLoginToNameIfNewUserWithoutName() {
+    void userStorageWriteLoginToNameIfNewUserWithoutName() {
         User user = User.builder().email("abv@mail.ru").login("abv")
                 .birthday(LocalDate.of(1995, 12, 4)).build();
         User user1 = userStorage.addUser(user);
@@ -65,7 +63,7 @@ class UserServiceTest {
     }
 
     @Test
-    void userControllerCantUpdateUserIfUserWithNewInformationWithoutId() {
+    void userStorageCantUpdateUserIfUserWithNewInformationWithoutId() {
         User user = User.builder().email("abv@mail.ru").login("abv").name("Andy")
                 .birthday(LocalDate.of(1995, 12, 4)).build();
         userStorage.addUser(user);
@@ -75,14 +73,14 @@ class UserServiceTest {
     }
 
     @Test
-    void userControllerCantUpdateUserIfIdOfNewUserNotFound() {
+    void userStorageCantUpdateUserIfIdOfNewUserNotFound() {
         User user = User.builder().id(2).email("abv@mail.ru").login("abv").name("Andy")
                 .birthday(LocalDate.of(1995, 12, 4)).build();
         assertThrows(NotFoundException.class, () -> userStorage.updateUser(user));
     }
 
     @Test
-    void userControllerCanUpdateUser() {
+    void userStorageCanUpdateUser() {
         User user = User.builder().email("abv@mail.ru").login("abv").name("Andy")
                 .birthday(LocalDate.of(1995, 12, 4)).build();
         userStorage.addUser(user);
