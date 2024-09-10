@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -6,32 +6,33 @@ import ru.yandex.practicum.filmorate.exception.DuplicateException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class UserStorageTest {
-    UserStorage userStorage;
+class UserServiceTest {
+    UserService userService;
 
     @BeforeEach
     void initUserStorage() {
-        userStorage = new InMemoryUserStorage();
+        userService = new UserService(new InMemoryUserStorage());
     }
 
     @Test
     void userStorageCanReturnUsersList() {
         User user = User.builder().email("abv@mail.ru").login("abv").name("Andy")
                 .birthday(LocalDate.of(1995, 12, 4)).build();
-        userStorage.addUser(user);
-        assertEquals(1, userStorage.getUsers().size());
+        userService.addUser(user);
+        assertEquals(1, userService.getUsers().size());
     }
 
     @Test
     void userStorageCanAddNewUser() {
         User user = User.builder().email("abv@mail.ru").login("abv").name("Andy")
                 .birthday(LocalDate.of(1995, 12, 4)).build();
-        User user1 = userStorage.addUser(user);
+        User user1 = userService.addUser(user);
         assertNotNull(user1);
     }
 
@@ -42,8 +43,8 @@ class UserStorageTest {
         User user1 = User.builder().email("abv@mail.ru").name("vba").login("vba")
                 .birthday(LocalDate.of(1988, 10, 2)).build();
         assertThrows(DuplicateException.class, () -> {
-            userStorage.addUser(user);
-            userStorage.addUser(user1);
+            userService.addUser(user);
+            userService.addUser(user1);
         });
     }
 
@@ -51,14 +52,14 @@ class UserStorageTest {
     void userStorageCantAddNewUserIfLoginContainWhitespace() {
         User user = User.builder().email("abv@mail.ru").login("a bv").name("Andy")
                 .birthday(LocalDate.of(1995, 12, 4)).build();
-        assertThrows(ValidationException.class, () -> userStorage.addUser(user));
+        assertThrows(ValidationException.class, () -> userService.addUser(user));
     }
 
     @Test
     void userStorageWriteLoginToNameIfNewUserWithoutName() {
         User user = User.builder().email("abv@mail.ru").login("abv")
                 .birthday(LocalDate.of(1995, 12, 4)).build();
-        User user1 = userStorage.addUser(user);
+        User user1 = userService.addUser(user);
         assertEquals(user1.getName(), user1.getLogin());
     }
 
@@ -66,27 +67,27 @@ class UserStorageTest {
     void userStorageCantUpdateUserIfUserWithNewInformationWithoutId() {
         User user = User.builder().email("abv@mail.ru").login("abv").name("Andy")
                 .birthday(LocalDate.of(1995, 12, 4)).build();
-        userStorage.addUser(user);
+        userService.addUser(user);
         User updatedUser = User.builder().email("abc@mail.ru").login("abc").name("Andy")
                 .birthday(LocalDate.of(1995, 12, 4)).build();
-        assertThrows(ValidationException.class, () -> userStorage.updateUser(updatedUser));
+        assertThrows(ValidationException.class, () -> userService.updateUser(updatedUser));
     }
 
     @Test
     void userStorageCantUpdateUserIfIdOfNewUserNotFound() {
         User user = User.builder().id(2).email("abv@mail.ru").login("abv").name("Andy")
                 .birthday(LocalDate.of(1995, 12, 4)).build();
-        assertThrows(NotFoundException.class, () -> userStorage.updateUser(user));
+        assertThrows(NotFoundException.class, () -> userService.updateUser(user));
     }
 
     @Test
     void userStorageCanUpdateUser() {
         User user = User.builder().email("abv@mail.ru").login("abv").name("Andy")
                 .birthday(LocalDate.of(1995, 12, 4)).build();
-        userStorage.addUser(user);
+        userService.addUser(user);
         User updatedUser = User.builder().id(1).email("abc@mail.ru").login("abc").name("Andy")
                 .birthday(LocalDate.of(1995, 12, 4)).build();
-        User user1 = userStorage.updateUser(updatedUser);
+        User user1 = userService.updateUser(updatedUser);
         assertEquals(updatedUser, user1);
     }
 }
