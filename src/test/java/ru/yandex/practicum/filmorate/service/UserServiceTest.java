@@ -1,92 +1,93 @@
-package ru.yandex.practicum.filmorate.controller;
+package ru.yandex.practicum.filmorate.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.DuplicateException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class UserControllerTest {
-    UserController userController;
+class UserServiceTest {
+    UserService userService;
 
     @BeforeEach
-    void initUserController() {
-        userController = new UserController();
+    void initUserStorage() {
+        userService = new UserService(new InMemoryUserStorage());
     }
 
     @Test
-    void userControllerCanReturnUsersList() {
+    void userStorageCanReturnUsersList() {
         User user = User.builder().email("abv@mail.ru").login("abv").name("Andy")
                 .birthday(LocalDate.of(1995, 12, 4)).build();
-        userController.addUser(user);
-        assertEquals(1, userController.getUsers().size());
+        userService.addUser(user);
+        assertEquals(1, userService.getUsers().size());
     }
 
     @Test
-    void userControllerCanAddNewUser() {
+    void userStorageCanAddNewUser() {
         User user = User.builder().email("abv@mail.ru").login("abv").name("Andy")
                 .birthday(LocalDate.of(1995, 12, 4)).build();
-        User user1 = userController.addUser(user);
+        User user1 = userService.addUser(user);
         assertNotNull(user1);
     }
 
     @Test
-    void userControllerCantAddNewUserIfEmailDuplicate() {
+    void userStorageCantAddNewUserIfEmailDuplicate() {
         User user = User.builder().email("abv@mail.ru").login("abv").name("Andy")
                 .birthday(LocalDate.of(1995, 12, 4)).build();
         User user1 = User.builder().email("abv@mail.ru").name("vba").login("vba")
                 .birthday(LocalDate.of(1988, 10, 2)).build();
         assertThrows(DuplicateException.class, () -> {
-            userController.addUser(user);
-            userController.addUser(user1);
+            userService.addUser(user);
+            userService.addUser(user1);
         });
     }
 
     @Test
-    void userControllerCantAddNewUserIfLoginContainWhitespace() {
+    void userStorageCantAddNewUserIfLoginContainWhitespace() {
         User user = User.builder().email("abv@mail.ru").login("a bv").name("Andy")
                 .birthday(LocalDate.of(1995, 12, 4)).build();
-        assertThrows(ConditionsNotMetException.class, () -> userController.addUser(user));
+        assertThrows(ValidationException.class, () -> userService.addUser(user));
     }
 
     @Test
-    void userControllerWriteLoginToNameIfNewUserWithoutName() {
+    void userStorageWriteLoginToNameIfNewUserWithoutName() {
         User user = User.builder().email("abv@mail.ru").login("abv")
                 .birthday(LocalDate.of(1995, 12, 4)).build();
-        User user1 = userController.addUser(user);
+        User user1 = userService.addUser(user);
         assertEquals(user1.getName(), user1.getLogin());
     }
 
     @Test
-    void userControllerCantUpdateUserIfUserWithNewInformationWithoutId() {
+    void userStorageCantUpdateUserIfUserWithNewInformationWithoutId() {
         User user = User.builder().email("abv@mail.ru").login("abv").name("Andy")
                 .birthday(LocalDate.of(1995, 12, 4)).build();
-        userController.addUser(user);
+        userService.addUser(user);
         User updatedUser = User.builder().email("abc@mail.ru").login("abc").name("Andy")
                 .birthday(LocalDate.of(1995, 12, 4)).build();
-        assertThrows(ConditionsNotMetException.class, () -> userController.updateUser(updatedUser));
+        assertThrows(ValidationException.class, () -> userService.updateUser(updatedUser));
     }
 
     @Test
-    void userControllerCantUpdateUserIfIdOfNewUserNotFound() {
+    void userStorageCantUpdateUserIfIdOfNewUserNotFound() {
         User user = User.builder().id(2).email("abv@mail.ru").login("abv").name("Andy")
                 .birthday(LocalDate.of(1995, 12, 4)).build();
-        assertThrows(NotFoundException.class, () -> userController.updateUser(user));
+        assertThrows(NotFoundException.class, () -> userService.updateUser(user));
     }
 
     @Test
-    void userControllerCanUpdateUser() {
+    void userStorageCanUpdateUser() {
         User user = User.builder().email("abv@mail.ru").login("abv").name("Andy")
                 .birthday(LocalDate.of(1995, 12, 4)).build();
-        userController.addUser(user);
+        userService.addUser(user);
         User updatedUser = User.builder().id(1).email("abc@mail.ru").login("abc").name("Andy")
                 .birthday(LocalDate.of(1995, 12, 4)).build();
-        User user1 = userController.updateUser(updatedUser);
+        User user1 = userService.updateUser(updatedUser);
         assertEquals(updatedUser, user1);
     }
 }
