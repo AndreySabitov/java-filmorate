@@ -16,7 +16,6 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class UserService {
     private final UserStorage userStorage;
-    private Integer count = 0;
 
     public List<User> getUsers() {
         return userStorage.getUsers();
@@ -29,7 +28,6 @@ public class UserService {
     public User addUser(User user) {
         validateUser(user);
         validateEmailDuplicates(user);
-        user.setId(calcNextId());
         return userStorage.addUser(user);
     }
 
@@ -108,9 +106,5 @@ public class UserService {
             throw new DuplicateException("Пользователь с таким email уже существует");
         }
         log.info("Дубликатов не найдено");
-    }
-
-    private Integer calcNextId() {
-        return ++count;
     }
 }

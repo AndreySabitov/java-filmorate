@@ -20,7 +20,6 @@ import java.util.List;
 public class FilmService {
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
-    private Integer count = 0;
 
     public List<Film> getFilms() {
         return filmStorage.getFilms();
@@ -33,7 +32,6 @@ public class FilmService {
     public Film addFilm(Film film) {
         validateFilm(film);
         validateFilmNameDuplicate(film);
-        film.setId(calcNextId());
         return filmStorage.addFilm(film);
     }
 
@@ -84,8 +82,6 @@ public class FilmService {
                 .toList()).reversed().stream()
                 .limit(count)
                 .toList();
-        /* не смог перевернуть сортировку в стриме: если добавляю .reversed() к компаратору,
-         то у film остаются доступны только методы класса Object */
     }
 
     private void validateFilm(Film film) {
@@ -104,10 +100,6 @@ public class FilmService {
             throw new DuplicateException("Фильм с таким названием уже существует");
         }
         log.info("Проверка прошла успешно");
-    }
-
-    private Integer calcNextId() {
-        return ++count;
     }
 
     private boolean checkNameDuplicate(Film newFilm) {

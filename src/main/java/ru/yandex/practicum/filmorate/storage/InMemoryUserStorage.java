@@ -14,6 +14,7 @@ import java.util.Map;
 @Slf4j
 public class InMemoryUserStorage implements UserStorage {
     private final Map<Integer, User> users = new HashMap<>();
+    private Integer count = 0;
 
     public List<User> getUsers() {
         return new ArrayList<>(users.values());
@@ -29,8 +30,13 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     public User addUser(User user) {
+        user.setId(calcNextId());
         users.put(user.getId(), user);
         log.info("Новый пользователь {} добавлен", user.getName());
         return user;
+    }
+
+    private Integer calcNextId() {
+        return ++count;
     }
 }
