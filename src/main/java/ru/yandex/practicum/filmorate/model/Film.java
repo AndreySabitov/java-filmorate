@@ -10,6 +10,7 @@ import lombok.Data;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 @Data
 @Builder
@@ -24,4 +25,7 @@ public class Film {
     @Positive(message = "продолжительность фильма не может быть отрицательной")
     private Integer duration;
     private final Set<Integer> idsOfUsersLikes = new HashSet<>();
+    private final Set<Genre> genres = new TreeSet<>();
+    @NotNull
+    private MPA mpa;
 }
