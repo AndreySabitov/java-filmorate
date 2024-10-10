@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.storage.user;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -16,10 +16,12 @@ public class InMemoryUserStorage implements UserStorage {
     private final Map<Integer, User> users = new HashMap<>();
     private Integer count = 0;
 
+    @Override
     public List<User> getUsers() {
         return new ArrayList<>(users.values());
     }
 
+    @Override
     public User getUserById(Integer id) {
         if (users.containsKey(id)) {
             return users.get(id);
@@ -29,11 +31,27 @@ public class InMemoryUserStorage implements UserStorage {
         }
     }
 
+    @Override
     public User addUser(User user) {
         user.setId(calcNextId());
         users.put(user.getId(), user);
         log.info("Новый пользователь {} добавлен", user.getName());
         return user;
+    }
+
+    @Override
+    public User updateUser(User user) {
+        return user;
+    }
+
+    @Override
+    public List<User> getUserFriends(Integer id) {
+        return null;
+    }
+
+    @Override
+    public List<User> getMutualFriends(Integer id, Integer otherId) {
+        return null;
     }
 
     private Integer calcNextId() {

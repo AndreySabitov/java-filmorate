@@ -3,31 +3,52 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.DuplicateException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
+import ru.yandex.practicum.filmorate.storage.user.friendship.FriendshipStorage;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class UserService {
     private final UserStorage userStorage;
+    private final FriendshipStorage friendshipDbStorage;
 
     public List<User> getUsers() {
-        return userStorage.getUsers();
+        Map<Integer, List<Integer>> friendshipMap = new HashMap<>();
+        friendshipDbStorage.getFriendship().forEach(friendship -> {
+            if (!friendshipMap.containsKey(friendship.getUserId())) {
+                friendshipMap.put(friendship.getUserId(), List.of(friendship.getFriendId()));
+            } else {
+                List<Integer> friendsIds = new ArrayList<>(friendshipMap.get(friendship.getUserId()));
+                friendsIds.add(friendship.getFriendId());
+                friendshipMap.put(friendship.getUserId(), friendsIds);
+            }
+        });
+        List<User> users = userStorage.getUsers();
+        users.forEach(user -> {
+            if (!friendshipMap.get(user.getId()).contains(0)) {
+                user.getFriendsIds().addAll(friendshipMap.get(user.getId()));
+            }
+        });
+        return users;
     }
 
     public User getUserById(Integer id) {
-        return userStorage.getUserById(id);
+        User user = userStorage.getUserById(id);
+        List<Integer> friendsIds = friendshipDbStorage.getFriendshipOfUser(id);
+        user.getFriendsIds().addAll(friendsIds);
+        return user;
     }
 
     public User addUser(User user) {
         validateUser(user);
-        validateEmailDuplicates(user);
         return userStorage.addUser(user);
     }
 
@@ -37,52 +58,35 @@ public class UserService {
             log.error("Ошибка валидации: не задан id");
             throw new ValidationException("id должен быть задан");
         }
-        User oldUser = getUserById(user.getId());
-        log.info("Начало обновления информации о пользователе {}", oldUser.getName());
-        if (!oldUser.getEmail().equals(user.getEmail())) {
-            log.debug("Обновление email");
-            oldUser.setEmail(user.getEmail());
-        }
-        if (!oldUser.getLogin().equals(user.getLogin())) {
-            log.debug("Обновление login");
-            oldUser.setLogin(user.getLogin());
-        }
-        if (user.getName() != null && !user.getName().isBlank()) {
-            log.debug("Обновление name");
-            oldUser.setName(user.getName());
-        }
-        if (user.getBirthday() != null) {
-            log.debug("Обновление даты рождения");
-            oldUser.setBirthday(user.getBirthday());
-        }
-        log.info("Информация об пользователе {} с id = {} обновлена", oldUser.getName(), oldUser.getId());
-        return oldUser;
+        return userStorage.updateUser(user);
     }
 
     public User addFriend(Integer id, Integer friendId) {
-        userStorage.getUserById(id).getFriendsIds().add(friendId);
-        userStorage.getUserById(friendId).getFriendsIds().add(id);
-        return userStorage.getUserById(id);
+        log.info("пользователь {} добавляет в друзья пользователя {}", id, friendId);
+        userStorage.getUserById(id);
+        userStorage.getUserById(friendId);
+        friendshipDbStorage.addFriend(id, friendId);
+        return getUserById(id);
     }
 
     public User deleteFriend(Integer id, Integer friendId) {
-        userStorage.getUserById(id).getFriendsIds().remove(friendId);
-        userStorage.getUserById(friendId).getFriendsIds().remove(id);
-        return userStorage.getUserById(id);
+        userStorage.getUserById(id);
+        userStorage.getUserById(friendId);
+        friendshipDbStorage.deleteFriend(id, friendId);
+        return getUserById(id);
     }
 
     public List<User> getUserFriends(Integer id) {
-        return userStorage.getUserById(id).getFriendsIds().stream()
-                .map(userStorage::getUserById)
-                .toList();
+        User user = userStorage.getUserById(id);
+        log.info("получаем список друзей пользователя {}", user);
+        return userStorage.getUserFriends(id);
     }
 
     public List<User> getMutualFriends(Integer id, Integer otherId) {
-        Set<Integer> recipientFriendsIds = userStorage.getUserById(otherId).getFriendsIds();
-        return userStorage.getUserById(id).getFriendsIds().stream()
-                .filter(recipientFriendsIds::contains)
-                .map(userStorage::getUserById)
-                .toList();
+        userStorage.getUserById(id);
+        userStorage.getUserById(otherId);
+        log.info("оба пользователя есть в базе");
+        return userStorage.getMutualFriends(id, otherId);
     }
 
     private void validateUser(User user) {
@@ -97,14 +101,5 @@ public class UserService {
             user.setName(user.getLogin());
         }
         log.info("Валидация прошла успешно");
-    }
-
-    private void validateEmailDuplicates(User user) {
-        log.info("Проверка на наличие дубликатов email");
-        if (userStorage.getUsers().stream().anyMatch(user1 -> user1.getEmail().equals(user.getEmail()))) {
-            log.error("Ошибка валидации: email уже используется");
-            throw new DuplicateException("Пользователь с таким email уже существует");
-        }
-        log.info("Дубликатов не найдено");
     }
 }
