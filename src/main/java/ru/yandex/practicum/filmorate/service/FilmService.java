@@ -3,15 +3,16 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.DuplicateException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.film.filmLikes.LikeStorage;
+import ru.yandex.practicum.filmorate.storage.film.genre.GenreStorage;
+import ru.yandex.practicum.filmorate.storage.film.rating.MpaStorage;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -19,20 +20,28 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FilmService {
     private final FilmStorage filmStorage;
-    private final UserStorage userStorage;
+    private final LikeStorage likeStorage;
+    private final GenreStorage genreDbStorage;
+    private final MpaStorage mpaStorage;
 
     public List<Film> getFilms() {
-        return filmStorage.getFilms();
+        List<Film> films = filmStorage.getFilms();
+        films.forEach(this::setGenresAndMpa);
+        return films;
     }
 
     public Film getFilmById(Integer id) {
-        return filmStorage.getFilmById(id);
+        Film film = filmStorage.getFilmById(id);
+        List<Genre> genres = genreDbStorage.getGenresOfFilm(id);
+        film.getGenres().addAll(genres);
+        film.setMpa(mpaStorage.getRatingOfFilm(id));
+        return film;
     }
 
     public Film addFilm(Film film) {
         validateFilm(film);
-        validateFilmNameDuplicate(film);
-        return filmStorage.addFilm(film);
+        int id = filmStorage.addFilm(film);
+        return getFilmById(id);
     }
 
     public Film updateFilm(Film film) {
@@ -42,46 +51,30 @@ public class FilmService {
             log.error("Не задан id");
             throw new ValidationException("id должен быть задан!");
         }
-        Film oldFilm = getFilmById(id);
-        log.info("Начало обновления информации о фильме {}", oldFilm.getName());
-        if (!oldFilm.getName().equals(film.getName())) {
-            log.debug("Обновление названия");
-            oldFilm.setName(film.getName());
-        }
-        if (film.getDescription() != null) {
-            log.debug("Обновление описания");
-            oldFilm.setDescription(film.getDescription());
-        }
-        log.debug("Обновление даты релиза");
-        oldFilm.setReleaseDate(film.getReleaseDate());
-        if (film.getDuration() != null) {
-            log.debug("Обновление информации о продолжительности фильма");
-            oldFilm.setDuration(film.getDuration());
-        }
-        log.info("Информация о фильме {} успешно обновлена", oldFilm.getName());
-        return oldFilm;
+        filmStorage.updateFilm(film);
+        return getFilmById(id);
     }
 
     public Film addLike(Integer id, Integer userId) {
-        userStorage.getUserById(userId);
-        Film film = filmStorage.getFilmById(id);
-        film.getIdsOfUsersLikes().add(userId);
-        return film;
+        likeStorage.addLike(id, userId);
+        return getFilmById(id);
     }
 
     public Film deleteLike(Integer id, Integer userId) {
-        userStorage.getUserById(userId);
-        Film film = filmStorage.getFilmById(id);
-        film.getIdsOfUsersLikes().remove(userId);
-        return film;
+        likeStorage.deleteLike(id, userId);
+        return getFilmById(id);
     }
 
     public List<Film> getMostPopularFilms(Integer count) {
-        return new ArrayList<>(filmStorage.getFilms().stream()
-                .sorted(Comparator.comparing(film -> film.getIdsOfUsersLikes().size()))
-                .toList()).reversed().stream()
-                .limit(count)
-                .toList();
+        List<Film> films = filmStorage.getMostPopularFilms(count);
+        films.forEach(this::setGenresAndMpa);
+        return films;
+    }
+
+    private void setGenresAndMpa(Film film) {
+        int id = film.getId();
+        film.getGenres().addAll(genreDbStorage.getGenresOfFilm(id));
+        film.setMpa(mpaStorage.getRatingOfFilm(id));
     }
 
     private void validateFilm(Film film) {
@@ -90,19 +83,16 @@ public class FilmService {
             log.error("Ошибка валидации:Дата релиза должна быть не раньше 28.12.1895г");
             throw new ValidationException("Дата релиза должна быть не раньше 28.12.1895г");
         }
-        log.info("Валидация прошла успешно");
-    }
-
-    private void validateFilmNameDuplicate(Film film) {
-        log.info("Проверка уникальности названия фильма");
-        if (checkNameDuplicate(film)) {
-            log.error("Ошибка валидации: фильм {} уже существует", film.getName());
-            throw new DuplicateException("Фильм с таким названием уже существует");
+        try {
+            film.getGenres().stream().map(Genre::getId).forEach(genreDbStorage::getGenreById);
+        } catch (NotFoundException e) {
+            throw new ValidationException("некорректно задан id жанра");
         }
-        log.info("Проверка прошла успешно");
-    }
-
-    private boolean checkNameDuplicate(Film newFilm) {
-        return filmStorage.getFilms().stream().anyMatch(film -> film.getName().equals(newFilm.getName()));
+        try {
+            mpaStorage.getRatingById(film.getMpa().getId());
+        } catch (NotFoundException e) {
+            throw new ValidationException("задан некорректный id MPA");
+        }
+        log.info("Валидация прошла успешно");
     }
 }

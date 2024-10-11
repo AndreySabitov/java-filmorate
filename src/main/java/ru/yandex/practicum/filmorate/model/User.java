@@ -5,13 +5,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
 
-@Data
+@Getter
+@Setter
 @Builder
 public class User {
     private Integer id;
@@ -23,5 +23,4 @@ public class User {
     private String name;
     @Past(message = "дата рождения не может быть в будущем")
     private LocalDate birthday;
-    private final Set<Integer> friendsIds = new HashSet<>();
 }
