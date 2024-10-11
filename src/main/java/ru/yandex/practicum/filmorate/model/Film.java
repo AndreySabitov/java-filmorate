@@ -4,16 +4,17 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
 import java.time.LocalDate;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
-@Data
+@Getter
+@Setter
 @Builder
+@ToString
+@EqualsAndHashCode
 public class Film {
     private Integer id;
     @NotBlank(message = "не задано название фильма")
@@ -24,7 +25,6 @@ public class Film {
     private LocalDate releaseDate;
     @Positive(message = "продолжительность фильма не может быть отрицательной")
     private Integer duration;
-    private final Set<Integer> idsOfUsersLikes = new HashSet<>();
     private final Set<Genre> genres = new TreeSet<>();
     @NotNull
     private MPA mpa;

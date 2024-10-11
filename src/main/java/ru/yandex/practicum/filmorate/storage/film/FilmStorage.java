@@ -9,9 +9,9 @@ public interface FilmStorage {
 
     Film getFilmById(Integer id);
 
-    Film addFilm(Film film);
+    int addFilm(Film film);
 
-    Film updateFilm(Film film);
+    void updateFilm(Film film);
 
     List<Film> getMostPopularFilms(Integer count);
 }

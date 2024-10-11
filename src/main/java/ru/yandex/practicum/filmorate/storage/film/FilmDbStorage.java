@@ -6,8 +6,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.storage.BaseDbStorage;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.storage.BaseDbStorage;
 
 import java.util.List;
 
@@ -17,11 +17,10 @@ import java.util.List;
 public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     private static final String GET_ALL_FILMS_QUERY = "SELECT * FROM films";
     private static final String GET_FILM_BY_ID_QUERY = "SELECT * FROM films WHERE film_id = ?";
-    private static final String INSERT_FILM_QUERY = "INSERT INTO films (title, description, release_date, duration, rating_id) " +
-            "VALUES(?,?,?,?,?)";
+    private static final String INSERT_FILM_QUERY = "INSERT INTO films (title, description, release_date, duration, " +
+            "rating_id) VALUES(?,?,?,?,?)";
     private static final String UPDATE_FILM_QUERY = "UPDATE films SET title = ?, description = ?, release_date = ?, " +
             "duration = ?, rating_id = ? WHERE film_id = ?";
-    private static final String GET_IDS_OF_USERS_LIKES_QUERY = "SELECT user_id FROM user_likes WHERE film_id = ?";
     private static final String GET_MOST_POPULAR_FILMS_QUERY =
             "SELECT f.FILM_ID AS FILM_ID, TITLE, DESCRIPTION, RELEASE_DATE, DURATION, rating_id FROM FILMS f " +
                     "LEFT JOIN USER_LIKES ul ON f.FILM_ID = ul.FILM_ID " +
@@ -40,13 +39,11 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
     @Override
     public Film getFilmById(Integer id) {
-        Film film = findOne(GET_FILM_BY_ID_QUERY, id);
-        film.getIdsOfUsersLikes().addAll(getIdsOfUsersLikes(id));
-        return film;
+        return findOne(GET_FILM_BY_ID_QUERY, id);
     }
 
     @Override
-    public Film addFilm(Film film) {
+    public int addFilm(Film film) {
         log.info("добавляем фильм {} в бд", film);
         int id = insert(INSERT_FILM_QUERY,
                 film.getName(),
@@ -58,11 +55,12 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         film.setId(id);
         log.info("добавляем жанры");
         film.getGenres().stream().map(Genre::getId).forEach(integer -> update(INSERT_FILM_GENRES_QUERY, id, integer));
-        return film;
+        log.info("жанры добавлены");
+        return id;
     }
 
     @Override
-    public Film updateFilm(Film film) {
+    public void updateFilm(Film film) {
         update(UPDATE_FILM_QUERY,
                 film.getName(),
                 film.getDescription(),
@@ -73,17 +71,10 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         );
         film.getGenres().stream().map(Genre::getId)
                 .forEach(integer -> update(INSERT_FILM_GENRES_QUERY, film.getId(), integer));
-        return film;
     }
 
     @Override
     public List<Film> getMostPopularFilms(Integer count) {
-        List<Film> result = findAll(GET_MOST_POPULAR_FILMS_QUERY, count);
-        result.forEach(film -> film.getIdsOfUsersLikes().addAll(getIdsOfUsersLikes(film.getId())));
-        return result;
-    }
-
-    private List<Integer> getIdsOfUsersLikes(Integer id) {
-        return jdbcTemplate.queryForList(GET_IDS_OF_USERS_LIKES_QUERY, Integer.class, id);
+        return findAll(GET_MOST_POPULAR_FILMS_QUERY, count);
     }
 }

@@ -9,6 +9,7 @@ import org.springframework.test.context.jdbc.Sql;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.user.friendship.FriendshipStorage;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -21,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @Sql(scripts = {"/schema.sql", "/data.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class UserServiceTest {
     private final UserService userService;
+    private final FriendshipStorage friendshipStorage;
 
     @Test
     void userStorageCanReturnUsersList() {
@@ -94,10 +96,10 @@ class UserServiceTest {
     void testCanAddFriend() {
         userService.addUser(User.builder().email("abv@mail.ru").login("abv").name("Andy")
                 .birthday(LocalDate.of(1995, 12, 4)).build());
-        userService.addUser(User.builder().email("abv@mail.ru").login("abv").name("Andy")
+        userService.addUser(User.builder().email("abvg@mail.ru").login("abvg").name("Andy")
                 .birthday(LocalDate.of(1995, 12, 4)).build());
         userService.addFriend(1, 2);
-        assertEquals(2, userService.getUserById(1).getFriendsIds().stream().findFirst().get());
+        assertEquals(2, friendshipStorage.getFriendshipOfUser(1).stream().findFirst().get());
     }
 
     @Test
@@ -118,18 +120,18 @@ class UserServiceTest {
     void testCanDeleteFriend() {
         userService.addUser(User.builder().email("abv@mail.ru").login("abv").name("Andy")
                 .birthday(LocalDate.of(1995, 12, 4)).build());
-        userService.addUser(User.builder().email("abv@mail.ru").login("abv").name("Andy")
+        userService.addUser(User.builder().email("abvg@mail.ru").login("abvg").name("Andy")
                 .birthday(LocalDate.of(1995, 12, 4)).build());
         userService.addFriend(1, 2);
         userService.deleteFriend(1, 2);
-        assertTrue(userService.getUserById(1).getFriendsIds().isEmpty());
+        assertTrue(friendshipStorage.getFriendshipOfUser(1).isEmpty());
     }
 
     @Test
     void testCanGetUserFriends() {
         userService.addUser(User.builder().email("abv@mail.ru").login("abv").name("Andy")
                 .birthday(LocalDate.of(1995, 12, 4)).build());
-        userService.addUser(User.builder().email("abv@mail.ru").login("abv").name("Andy")
+        userService.addUser(User.builder().email("abvg@mail.ru").login("abvg").name("Andy")
                 .birthday(LocalDate.of(1995, 12, 4)).build());
         userService.addFriend(1, 2);
         List<User> friends = userService.getUserFriends(1);

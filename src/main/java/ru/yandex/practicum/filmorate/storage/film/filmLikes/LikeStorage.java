@@ -8,4 +8,6 @@ public interface LikeStorage {
     void deleteLike(Integer filmId, Integer userId);
 
     List<UserLikes> getAllLikes();
+
+    List<Integer> getIdsOfUserLikes(Integer id);
 }

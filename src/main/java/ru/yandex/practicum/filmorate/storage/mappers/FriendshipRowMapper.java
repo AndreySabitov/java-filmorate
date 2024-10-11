@@ -14,7 +14,6 @@ public class FriendshipRowMapper implements RowMapper<Friendship> {
         return Friendship.builder()
                 .userId(rs.getInt("user_id1"))
                 .friendId(rs.getInt("user_id2"))
-                .status(rs.getInt("status_id"))
                 .build();
     }
 }

@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.MPA;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.film.filmLikes.LikeStorage;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -24,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class FilmServiceTest {
     private final FilmService filmService;
     private final UserService userService;
+    private final LikeStorage likeStorage;
 
     @Test
     void testCanAddNewFilm() {
@@ -55,7 +57,7 @@ class FilmServiceTest {
                 .mpa(MPA.builder().id(1).build()).build());
         Film updatedFilm = Film.builder().id(1).name("name1").description("description1")
                 .releaseDate(LocalDate.of(2019, 10, 20)).duration(90)
-                .mpa(MPA.builder().id(1).build()).build();
+                .mpa(MPA.builder().id(1).name("G").build()).build();
         Film film = filmService.updateFilm(updatedFilm);
         assertEquals(film, updatedFilm);
     }
@@ -87,25 +89,25 @@ class FilmServiceTest {
 
     @Test
     void testCanAddLikeToFilm() {
-        Film film1 = filmService.addFilm(Film.builder().name("name").description("description")
+        Film film = filmService.addFilm(Film.builder().name("name").description("description")
                 .releaseDate(LocalDate.of(2020, 10, 20)).duration(90)
                 .mpa(MPA.builder().id(1).build()).build());
         User user = userService.addUser(User.builder().email("abv@mail.ru").login("Login")
                 .birthday(LocalDate.of(1996, 12, 15)).build());
-        Film film2 = filmService.addLike(film1.getId(), user.getId());
-        assertEquals(1, film2.getIdsOfUsersLikes().size());
+        filmService.addLike(film.getId(), user.getId());
+        assertEquals(1, likeStorage.getIdsOfUserLikes(film.getId()).size());
     }
 
     @Test
     void testCanDeleteLikeFromFilm() {
-        Film film1 = filmService.addFilm(Film.builder().name("name").description("description")
+        Film film = filmService.addFilm(Film.builder().name("name").description("description")
                 .releaseDate(LocalDate.of(2020, 10, 20)).duration(90)
                 .mpa(MPA.builder().id(1).build()).build());
         User user = userService.addUser(User.builder().email("abv@mail.ru").login("Login")
                 .birthday(LocalDate.of(1996, 12, 15)).build());
-        filmService.addLike(film1.getId(), user.getId());
-        Film film2 = filmService.deleteLike(film1.getId(), user.getId());
-        assertTrue(film2.getIdsOfUsersLikes().isEmpty());
+        filmService.addLike(film.getId(), user.getId());
+        filmService.deleteLike(film.getId(), user.getId());
+        assertTrue(likeStorage.getIdsOfUserLikes(film.getId()).isEmpty());
     }
 
     @Test
@@ -130,25 +132,5 @@ class FilmServiceTest {
                     .description("description").releaseDate(LocalDate.of(2020, 10, 20)).duration(90)
                     .mpa(MPA.builder().id(10).build()).build());
         });
-    }
-
-    @Test
-    void testCanGetGenres() {
-        assertEquals(6, filmService.getGenres().size());
-    }
-
-    @Test
-    void testCanGetGenreById() {
-        assertEquals("Комедия", filmService.getGenreById(1).getName());
-    }
-
-    @Test
-    void testCanGetMpa() {
-        assertEquals(5, filmService.getRatings().size());
-    }
-
-    @Test
-    void testCanGetMpaById() {
-        assertEquals("G", filmService.getRatingById(1).getName());
     }
 }

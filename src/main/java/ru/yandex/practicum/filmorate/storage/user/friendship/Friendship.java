@@ -8,5 +8,4 @@ import lombok.Data;
 public class Friendship {
     private final Integer userId;
     private final Integer friendId;
-    private Integer status;
 }

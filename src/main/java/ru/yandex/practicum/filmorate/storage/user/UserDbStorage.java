@@ -22,10 +22,8 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
             "birthday = ? WHERE user_id = ?";
     private static final String GET_USER_FRIENDS_QUERY = "SELECT * FROM users " +
             "WHERE user_id IN (SELECT user_id2 FROM friendship WHERE user_id1 = ?)";
-    private static final String GET_MUTUAL_FRIENDS_QUERY = "SELECT * FROM users " +
-            "WHERE user_id IN (SELECT user_id2 FROM friendship WHERE user_id1 = ?) INTERSECT " +
-            "SELECT * FROM users " +
-            "WHERE user_id IN (SELECT user_id2 FROM friendship WHERE user_id1 = ?)";
+    private static final String GET_MUTUAL_FRIENDS_QUERY = "SELECT * FROM users u, friendship f, friendship o " +
+            "WHERE u.user_id = f.user_id2 AND u.user_id = o.user_id2 AND f.user_id1 = ? AND o.user_id1 = ?";
 
     public UserDbStorage(JdbcTemplate jdbcTemplate, RowMapper<User> mapper) {
         super(jdbcTemplate, mapper);
