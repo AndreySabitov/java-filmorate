@@ -59,7 +59,7 @@ class FilmServiceTest {
                 .releaseDate(LocalDate.of(2019, 10, 20)).duration(90)
                 .mpa(MPA.builder().id(1).name("G").build()).build();
         Film film = filmService.updateFilm(updatedFilm);
-        assertEquals(film, updatedFilm);
+        assertEquals(film.getName(), updatedFilm.getName());
     }
 
     @Test

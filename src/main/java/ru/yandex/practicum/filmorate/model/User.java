@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,7 +13,6 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @Builder
-@EqualsAndHashCode
 public class User {
     private Integer id;
     @NotNull(message = "email должен быть задан")

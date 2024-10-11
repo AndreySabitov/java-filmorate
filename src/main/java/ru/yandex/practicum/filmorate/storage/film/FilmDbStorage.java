@@ -10,6 +10,8 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.BaseDbStorage;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Repository
@@ -54,7 +56,8 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         );
         film.setId(id);
         log.info("добавляем жанры");
-        film.getGenres().stream().map(Genre::getId).forEach(integer -> update(INSERT_FILM_GENRES_QUERY, id, integer));
+        Set<Integer> genresIds = film.getGenres().stream().map(Genre::getId).collect(Collectors.toSet());
+        genresIds.forEach(integer -> update(INSERT_FILM_GENRES_QUERY, id, integer));
         log.info("жанры добавлены");
         return id;
     }

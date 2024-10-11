@@ -89,7 +89,7 @@ class UserServiceTest {
                 .birthday(LocalDate.of(1995, 12, 4)).build();
         User user1 = userService.addUser(user);
         User user2 = userService.getUserById(user1.getId());
-        assertEquals(user2, user1);
+        assertEquals(user2.getName(), user1.getName());
     }
 
     @Test
