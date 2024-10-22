@@ -24,6 +24,7 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
             "WHERE user_id IN (SELECT user_id2 FROM friendship WHERE user_id1 = ?)";
     private static final String GET_MUTUAL_FRIENDS_QUERY = "SELECT * FROM users u, friendship f, friendship o " +
             "WHERE u.user_id = f.user_id2 AND u.user_id = o.user_id2 AND f.user_id1 = ? AND o.user_id1 = ?";
+    private static final String DELETE_USER_QUERY = "DELETE FROM users WHERE user_id = ?";
 
     public UserDbStorage(JdbcTemplate jdbcTemplate, RowMapper<User> mapper) {
         super(jdbcTemplate, mapper);
@@ -65,6 +66,11 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
                 user.getId()
         );
         return user;
+    }
+
+    @Override
+    public void deleteUserById(Integer userId) {
+        delete(DELETE_USER_QUERY, userId);
     }
 
     @Override

@@ -29,6 +29,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                     "GROUP BY f.FILM_ID ORDER BY COUNT(user_id) DESC " +
                     "LIMIT ?";
     private static final String INSERT_FILM_GENRES_QUERY = "INSERT INTO films_genres (film_id, genre_id) VALUES (?, ?)";
+    private static final String DELETE_FILM_QUERY = "DELETE FROM films WHERE film_id = ?";
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate, RowMapper<Film> mapper) {
         super(jdbcTemplate, mapper);
@@ -74,6 +75,12 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         );
         film.getGenres().stream().map(Genre::getId)
                 .forEach(integer -> update(INSERT_FILM_GENRES_QUERY, film.getId(), integer));
+    }
+
+    @Override
+    public void deleteFilm(Integer filmId) {
+        log.info("удаляем фильм из БД");
+        delete(DELETE_FILM_QUERY, filmId);
     }
 
     @Override
