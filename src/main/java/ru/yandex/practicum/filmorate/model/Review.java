@@ -11,7 +11,6 @@ import lombok.experimental.FieldDefaults;
 @Getter
 @Setter
 @Builder(toBuilder = true)
-
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Review {
     Integer reviewId;
@@ -23,5 +22,5 @@ public class Review {
     Integer userId;
     @NotNull(message = "Не указан id фильма")
     Integer filmId;
-    Integer useful;
+    int useful;
 }
