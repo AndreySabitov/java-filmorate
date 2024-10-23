@@ -13,7 +13,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ReviewLike {
     @NotNull
-    Integer filmId;
+    Integer reviewId;
     @NotNull
     Integer userId;
 }
