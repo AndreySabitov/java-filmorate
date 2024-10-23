@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @AllArgsConstructor
-public class ReviewDislikeDbStorage implements ReviewDislikeStorage{
+public class ReviewDislikeDbStorage implements ReviewDislikeStorage {
 
     private final JdbcTemplate jdbc;
     private final RowMapper<ReviewDislike> mapper;

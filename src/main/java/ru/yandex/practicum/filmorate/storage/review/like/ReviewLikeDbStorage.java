@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @AllArgsConstructor
-public class ReviewLikeDbStorage implements ReviewLikeStorage{
+public class ReviewLikeDbStorage implements ReviewLikeStorage {
 
     private final JdbcTemplate jdbc;
     private final RowMapper<ReviewLike> mapper;
