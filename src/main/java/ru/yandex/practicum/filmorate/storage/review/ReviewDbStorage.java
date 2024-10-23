@@ -17,12 +17,12 @@ import java.util.List;
 @Repository
 public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStorage {
 
+    private static final String GET_ALL_QUERY = "SELECT * FROM review";
     private static final String ADD_NEW_REVIEW_QUERY = "INSERT INTO reviews (content, is_positive, user_id, film_id) " +
             "VALUES (?,?,?,?)";
     private static final String UPDATE_REVIEW_QUERY = "UPDATE reviews SET content=?, is_positive=?, user_id=?, " +
             " film_id=? WHERE id=?";
     private static final String DELETE_REVIEW_QUERY = "DELETE FROM reviews WHERE id=?";
-    private static final String GET_REVIEWS_BY_FILM_ID_QUERY = "SELECT * FROM review WHERE film_id=? LIMIT ?";
 
     public ReviewDbStorage(JdbcTemplate jdbcTemplate, RowMapper<Review> mapper) {
         super(jdbcTemplate, mapper);
@@ -77,6 +77,7 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
 
     @Override
     public List<Review> getAllReviewsByFilmId(Integer filmId, int count) {
+        final String GET_REVIEWS_BY_FILM_ID_QUERY = GET_ALL_QUERY.concat(" WHERE film_id=? LIMIT ?");
         try {
             log.info("Получение списка из {} отзывов фильма под id={}", count, filmId);
             return findAll(
@@ -87,5 +88,11 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
         } catch (NotFoundException e) {
             return new ArrayList<>();
         }
+    }
+
+    @Override
+    public Review getReviewById(Integer reviewId) {
+        final String GET_REVIEW_BY_ID_QUERY = GET_ALL_QUERY.concat(" WHERE id = ?");
+        return findOne(GET_REVIEW_BY_ID_QUERY, reviewId);
     }
 }
