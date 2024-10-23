@@ -18,7 +18,7 @@ import java.util.Optional;
 @Repository
 public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStorage {
 
-    private static final String GET_ALL_QUERY = "SELECT * FROM review";
+    private static final String GET_ALL_QUERY = "SELECT * FROM reviews";
     private static final String ADD_NEW_REVIEW_QUERY = "INSERT INTO reviews (content, is_positive, user_id, film_id) " +
             "VALUES (?,?,?,?)";
     private static final String UPDATE_REVIEW_QUERY = "UPDATE reviews SET content=?, is_positive=?, user_id=?, " +
