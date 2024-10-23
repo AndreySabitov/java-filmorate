@@ -21,11 +21,13 @@ public class ReviewService {
     private final ReviewDislikeStorage reviewDislikeStorage;
 
     public Review addNewReview(Review newReview) {
-        Review addedReview = reviewStorage.addNewReview(newReview);
         try {
-            return reviewStorage.getReviewById(addedReview.getReviewId());
+            return reviewStorage.addNewReview(newReview);
         } catch (Exception e) {
-            throw new NotFoundException("Указанный фильм или пользователь не существуют");
+            log.error("Указанный id пользователя или фильма не найден. UserId={}, FilmId={}",
+                    newReview.getUserId(),
+                    newReview.getFilmId());
+            throw new NotFoundException("Указанный id пользователя или фильма не найден.");
         }
     }
 
