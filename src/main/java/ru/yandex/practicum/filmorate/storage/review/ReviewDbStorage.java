@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.storage.BaseDbStorage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Primary
 @Slf4j
@@ -76,14 +77,14 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
     }
 
     @Override
-    public List<Review> getAllReviewsByFilmId(Integer filmId, int count) {
-        if (filmId != null) {
+    public List<Review> getAllReviewsByFilmId(Optional<Integer> filmId, int count) {
+        if (filmId.isPresent()) {
             final String getReviewsByFilmIdLimited = GET_ALL_QUERY.concat(" WHERE film_id=? LIMIT ?");
             try {
-                log.info("Получение списка из {} отзывов фильма под id={}", count, filmId);
+                log.info("Получение списка из {} отзывов фильма под id={}", count, filmId.get());
                 return findAll(
                         getReviewsByFilmIdLimited,
-                        filmId,
+                        filmId.get(),
                         count
                 );
             } catch (NotFoundException e) {
