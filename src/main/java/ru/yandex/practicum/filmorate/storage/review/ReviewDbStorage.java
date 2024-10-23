@@ -77,16 +77,25 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
 
     @Override
     public List<Review> getAllReviewsByFilmId(Integer filmId, int count) {
-        final String getReviewsByFilmId = GET_ALL_QUERY.concat(" WHERE film_id=? LIMIT ?");
-        try {
-            log.info("Получение списка из {} отзывов фильма под id={}", count, filmId);
-            return findAll(
-                    getReviewsByFilmId,
-                    filmId,
-                    count
-            );
-        } catch (NotFoundException e) {
-            return new ArrayList<>();
+        if (filmId != null) {
+            final String getReviewsByFilmIdLimited = GET_ALL_QUERY.concat(" WHERE film_id=? LIMIT ?");
+            try {
+                log.info("Получение списка из {} отзывов фильма под id={}", count, filmId);
+                return findAll(
+                        getReviewsByFilmIdLimited,
+                        filmId,
+                        count
+                );
+            } catch (NotFoundException e) {
+                return new ArrayList<>();
+            }
+        } else {
+            try {
+                log.info("Получение списка всех отзывов");
+                return findAll(GET_ALL_QUERY);
+            } catch (NotFoundException e) {
+                return new ArrayList<>();
+            }
         }
     }
 
