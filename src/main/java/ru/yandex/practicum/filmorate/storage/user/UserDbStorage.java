@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.BaseDbStorage;
 
@@ -38,7 +39,11 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     @Override
     public User getUserById(Integer id) {
         log.info("поиск пльзователя по id из БД");
-        return findOne(GET_USER_BY_ID_QUERY, id);
+        try {
+            return findOne(GET_USER_BY_ID_QUERY, id);
+        } catch (Exception e) {
+            throw new NotFoundException("Пользователь не найден");
+        }
     }
 
     @Override

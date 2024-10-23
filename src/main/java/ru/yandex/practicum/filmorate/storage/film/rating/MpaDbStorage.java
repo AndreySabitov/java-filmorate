@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.storage.film.rating;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.MPA;
 import ru.yandex.practicum.filmorate.storage.BaseDbStorage;
 
@@ -26,11 +27,19 @@ public class MpaDbStorage extends BaseDbStorage<MPA> implements MpaStorage {
 
     @Override
     public MPA getRatingById(Integer id) {
-        return findOne(GET_RATING_BY_ID, id);
+        try {
+            return findOne(GET_RATING_BY_ID, id);
+        } catch (Exception e) {
+            throw new NotFoundException("Рейтинг не найден");
+        }
     }
 
     @Override
     public MPA getRatingOfFilm(Integer id) {
-        return findOne(GET_RATING_OF_FILM_QUERY, id);
+        try {
+            return findOne(GET_RATING_OF_FILM_QUERY, id);
+        } catch (Exception e) {
+            throw new NotFoundException("Рейтинг не найден");
+        }
     }
 }

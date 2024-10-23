@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.BaseDbStorage;
@@ -42,7 +43,11 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
     @Override
     public Film getFilmById(Integer id) {
-        return findOne(GET_FILM_BY_ID_QUERY, id);
+        try {
+            return findOne(GET_FILM_BY_ID_QUERY, id);
+        } catch (Exception e) {
+            throw new NotFoundException("Фильм не найден");
+        }
     }
 
     @Override
