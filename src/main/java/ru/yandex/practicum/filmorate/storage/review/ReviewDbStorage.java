@@ -77,11 +77,11 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
 
     @Override
     public List<Review> getAllReviewsByFilmId(Integer filmId, int count) {
-        final String GET_REVIEWS_BY_FILM_ID_QUERY = GET_ALL_QUERY.concat(" WHERE film_id=? LIMIT ?");
+        final String getReviewsByFilmId = GET_ALL_QUERY.concat(" WHERE film_id=? LIMIT ?");
         try {
             log.info("Получение списка из {} отзывов фильма под id={}", count, filmId);
             return findAll(
-                    GET_REVIEWS_BY_FILM_ID_QUERY,
+                    getReviewsByFilmId,
                     filmId,
                     count
             );
@@ -92,7 +92,7 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
 
     @Override
     public Review getReviewById(Integer reviewId) {
-        final String GET_REVIEW_BY_ID_QUERY = GET_ALL_QUERY.concat(" WHERE id = ?");
-        return findOne(GET_REVIEW_BY_ID_QUERY, reviewId);
+        final String getReviewById = GET_ALL_QUERY.concat(" WHERE id = ?");
+        return findOne(getReviewById, reviewId);
     }
 }
