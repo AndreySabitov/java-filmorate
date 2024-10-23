@@ -36,6 +36,14 @@ public class ReviewService {
         reviewStorage.removeReview(id);
     }
 
+    public Review getReviewById(Integer id) {
+        try {
+            return reviewStorage.getReviewById(id);
+        } catch (Exception e) {
+            throw new NotFoundException(String.format("Отзыв под id=%s не найден", id));
+        }
+    }
+
     public List<Review> getAllReviewsByFilmId(Integer filmId, int count) {
         return reviewStorage.getAllReviewsByFilmId(filmId, count);
     }
