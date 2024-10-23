@@ -10,8 +10,8 @@ import java.util.List;
 
 @Repository
 public class MpaDbStorage extends BaseDbStorage<MPA> implements MpaStorage {
-    private static final String GET_ALL_RATINGS_QUERY = "SELECT * FROM rating";
-    private static final String GET_RATING_BY_ID = "SELECT * FROM rating WHERE rating_id = ?";
+    private static final String GET_ALL_RATINGS_QUERY = "SELECT * FROM rating ";
+    private static final String GET_RATING_BY_ID = GET_ALL_RATINGS_QUERY.concat("WHERE rating_id = ?");
     private static final String GET_RATING_OF_FILM_QUERY = "SELECT f.rating_id, r.rating_name FROM films f " +
             "JOIN rating r ON f.rating_id = r.rating_id WHERE film_id = ?";
 

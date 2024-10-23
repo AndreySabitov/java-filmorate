@@ -13,6 +13,8 @@ public interface UserStorage {
 
     User updateUser(User user);
 
+    void deleteUserById(Integer userId);
+
     List<User> getUserFriends(Integer id);
 
     List<User> getMutualFriends(Integer id, Integer otherId);

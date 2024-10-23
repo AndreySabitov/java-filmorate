@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.film.filmLikes.LikeStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 import ru.yandex.practicum.filmorate.storage.user.friendship.FriendshipStorage;
 
@@ -16,6 +17,7 @@ import java.util.List;
 public class UserService {
     private final UserStorage userStorage;
     private final FriendshipStorage friendshipDbStorage;
+    private final LikeStorage likeStorage;
 
     public List<User> getUsers() {
         return userStorage.getUsers();
@@ -37,6 +39,16 @@ public class UserService {
             throw new ValidationException("id должен быть задан");
         }
         return userStorage.updateUser(user);
+    }
+
+    public User deleteUser(Integer userId) {
+        User user = getUserById(userId);
+        friendshipDbStorage.deleteFriendshipOfUser(userId);
+        log.info("почистили дружбу пользователя");
+        likeStorage.deleteLikesOfUser(userId);
+        log.info("удалили лайки пользователя");
+        userStorage.deleteUserById(userId);
+        return user;
     }
 
     public User addFriend(Integer id, Integer friendId) {

@@ -55,6 +55,15 @@ public class FilmService {
         return getFilmById(id);
     }
 
+    public Film deleteFilm(Integer filmId) {
+        Film film = getFilmById(filmId);
+        likeStorage.deleteLikesOfFilm(filmId);
+        genreDbStorage.deleteGenresOfFilm(filmId);
+        log.info("удалили инфу о фильме из таблиц лайков и жанров");
+        filmStorage.deleteFilm(filmId);
+        return film;
+    }
+
     public Film addLike(Integer id, Integer userId) {
         likeStorage.addLike(id, userId);
         return getFilmById(id);

@@ -9,11 +9,15 @@ import java.util.List;
 
 @Repository
 public class FilmLikeDbStorage extends BaseDbStorage<UserLikes> implements LikeStorage {
+    private static final String DELETE_QUERY = "DELETE FROM user_likes ";
     private static final String ADD_LIKE_TO_FILM_QUERY = "INSERT INTO user_likes (film_id, user_id) VALUES (?, ?)";
-    private static final String DELETE_LIKE_QUERY = "DELETE FROM user_likes WHERE film_id = ? AND user_id = ?";
+    private static final String DELETE_LIKE_QUERY = DELETE_QUERY
+            .concat("WHERE film_id = ? AND user_id = ?");
     private static final String GET_LIKES_OF_ALL_FILMS = "SELECT f.film_id, ul.user_id FROM films f " +
             "LEFT JOIN user_likes ul ON f.film_id = ul.film_id";
     private static final String GET_IDS_OF_USERS_LIKES_QUERY = "SELECT user_id FROM user_likes WHERE film_id = ?";
+    private static final String DELETE_LIKES_OF_FILM_QUERY = DELETE_QUERY.concat("WHERE film_id = ?");
+    private static final String DELETE_LIKES_OF_USER_QUERY = DELETE_QUERY.concat("WHERE user_id = ?");
 
     public FilmLikeDbStorage(JdbcTemplate jdbcTemplate, RowMapper<UserLikes> mapper) {
         super(jdbcTemplate, mapper);
@@ -29,6 +33,17 @@ public class FilmLikeDbStorage extends BaseDbStorage<UserLikes> implements LikeS
         update(DELETE_LIKE_QUERY, filmId, userId);
     }
 
+    @Override
+    public void deleteLikesOfFilm(Integer filmId) {
+        delete(DELETE_LIKES_OF_FILM_QUERY, filmId);
+    }
+
+    @Override
+    public void deleteLikesOfUser(Integer userId) {
+        delete(DELETE_LIKES_OF_USER_QUERY, userId);
+    }
+
+    @Override
     public List<UserLikes> getAllLikes() {
         return findAll(GET_LIKES_OF_ALL_FILMS);
     }
