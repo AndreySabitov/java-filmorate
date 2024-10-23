@@ -4,7 +4,7 @@ import java.util.List;
 
 public interface ReviewLikeStorage {
     
-    ReviewLike addReviewLike(Integer reviewId, Integer userId);
+    void addReviewLike(Integer reviewId, Integer userId);
 
     void removeReviewLike(Integer reviewId, Integer userId);
 
