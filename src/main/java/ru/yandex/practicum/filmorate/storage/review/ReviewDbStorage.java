@@ -79,8 +79,8 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
     @Override
     public List<Review> getAllReviewsByFilmId(Optional<Integer> filmId, int count) {
         if (filmId.isPresent()) {
-            final String getReviewsByFilmIdLimited = GET_ALL_QUERY.concat(" WHERE film_id=? LIMIT ? " +
-                    "ORDER BY usefulness_rate DESC");
+            final String getReviewsByFilmIdLimited = GET_ALL_QUERY.concat(" WHERE film_id=? " +
+                    "ORDER BY usefulness_rate DESC LIMIT ?");
             try {
                 log.info("Получение списка из {} отзывов фильма под id={}", count, filmId.get());
                 return findAll(
