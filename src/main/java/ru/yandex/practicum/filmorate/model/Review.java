@@ -11,12 +11,14 @@ import lombok.experimental.FieldDefaults;
 @Getter
 @Setter
 @Builder(toBuilder = true)
+
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Review {
     Integer reviewId;
     @NotBlank(message = "Отзыв не может быть пустым. Вы что, бот?")
     String content;
-    boolean isPositive;
+    @NotNull(message = "Отзыв должен быть либо положительным, либо негативным")
+    Boolean isPositive;
     @NotNull(message = "Не указан id пользователя")
     Integer userId;
     @NotNull(message = "Не указан id фильма")
