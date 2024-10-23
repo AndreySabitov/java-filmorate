@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class ReviewLikeDbStorage implements ReviewLikeStorage{
 
-    private static JdbcTemplate jdbc;
+    private final JdbcTemplate jdbc;
 
     @Override
     public void addReviewLike(Integer reviewId, Integer userId) {
