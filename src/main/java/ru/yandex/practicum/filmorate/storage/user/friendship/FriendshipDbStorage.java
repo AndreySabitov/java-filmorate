@@ -9,16 +9,17 @@ import java.util.List;
 
 @Repository
 public class FriendshipDbStorage extends BaseDbStorage<Friendship> implements FriendshipStorage {
-
+    private static final String DELETE_QUERY = "DELETE FROM friendship ";
     private static final String INSERT_NEW_FRIENDSHIP_QUERY = "INSERT INTO friendship (user_id1, user_id2) " +
             "VALUES (?, ?)";
-    private static final String DELETE_FRIENDSHIP_QUERY = "DELETE FROM friendship WHERE user_id1 = ? AND user_id2 = ?";
+    private static final String DELETE_FRIENDSHIP_QUERY = DELETE_QUERY
+            .concat("WHERE user_id1 = ? AND user_id2 = ?");
     private static final String GET_FRIENDSHIP_OF_USER_QUERY = "SELECT user_id2 FROM friendship " +
             "WHERE user_id1 = ?";
     private static final String GET_FRIENDSHIP_QUERY = "SELECT u.USER_ID AS user_id1, f.USER_ID2, f.STATUS_ID " +
             "FROM USERS u LEFT JOIN FRIENDSHIP f ON u.USER_ID = f.USER_ID1";
-    private static final String DELETE_FRIENDSHIP_OF_USER_QUERY = "DELETE FROM friendship WHERE user_id1 = ? " +
-            "OR user_id2 = ?";
+    private static final String DELETE_FRIENDSHIP_OF_USER_QUERY = DELETE_QUERY.concat("WHERE user_id1 = ? " +
+            "OR user_id2 = ?");
 
 
     public FriendshipDbStorage(JdbcTemplate jdbcTemplate, RowMapper<Friendship> mapper) {

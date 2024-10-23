@@ -17,8 +17,8 @@ import java.util.stream.Collectors;
 @Repository
 @Primary
 public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
-    private static final String GET_ALL_FILMS_QUERY = "SELECT * FROM films";
-    private static final String GET_FILM_BY_ID_QUERY = "SELECT * FROM films WHERE film_id = ?";
+    private static final String GET_ALL_FILMS_QUERY = "SELECT * FROM films ";
+    private static final String GET_FILM_BY_ID_QUERY = GET_ALL_FILMS_QUERY.concat("WHERE film_id = ?");
     private static final String INSERT_FILM_QUERY = "INSERT INTO films (title, description, release_date, duration, " +
             "rating_id) VALUES(?,?,?,?,?)";
     private static final String UPDATE_FILM_QUERY = "UPDATE films SET title = ?, description = ?, release_date = ?, " +
