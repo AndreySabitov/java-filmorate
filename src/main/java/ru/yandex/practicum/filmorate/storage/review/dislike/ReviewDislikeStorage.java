@@ -4,7 +4,7 @@ import java.util.List;
 
 public interface ReviewDislikeStorage {
 
-    ReviewDislike addReviewDislike(Integer reviewId, Integer userId);
+    void addReviewDislike(Integer reviewId, Integer userId);
 
     void removeReviewDislike(Integer reviewId, Integer userId);
 
