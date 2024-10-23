@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.storage.review.dislike.ReviewDislikeStorage
 import ru.yandex.practicum.filmorate.storage.review.like.ReviewLikeStorage;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -44,7 +45,7 @@ public class ReviewService {
         }
     }
 
-    public List<Review> getAllReviewsByFilmId(Integer filmId, int count) {
+    public List<Review> getAllReviewsByFilmId(Optional<Integer> filmId, int count) {
         return reviewStorage.getAllReviewsByFilmId(filmId, count);
     }
 
