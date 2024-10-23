@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage.review.like;
+package ru.yandex.practicum.filmorate.storage.review.dislike;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
@@ -11,7 +11,7 @@ import lombok.experimental.FieldDefaults;
 @Setter
 @Builder(toBuilder = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class reviewLike {
+public class ReviewDislike {
     @NotNull
     Integer filmId;
     @NotNull
