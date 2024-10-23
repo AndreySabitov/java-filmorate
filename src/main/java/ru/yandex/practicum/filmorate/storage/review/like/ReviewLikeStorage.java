@@ -7,9 +7,5 @@ public interface ReviewLikeStorage {
     void addReviewLike(Integer reviewId, Integer userId);
 
     void removeReviewLike(Integer reviewId, Integer userId);
-
-    List<ReviewLike> getAllReviewLikes(Integer id);
-
-    void removeAllReviewLikes(Integer id);
     
 }
