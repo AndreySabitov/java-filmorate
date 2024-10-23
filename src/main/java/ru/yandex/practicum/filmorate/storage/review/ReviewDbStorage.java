@@ -35,7 +35,7 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
         int generatedId = insert(
                 ADD_NEW_REVIEW_QUERY,
                 newReview.getContent(),
-                newReview.isPositive(),
+                newReview.getIsPositive(),
                 newReview.getUserId(),
                 newReview.getFilmId()
         );
@@ -51,7 +51,7 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
             update(
                     UPDATE_REVIEW_QUERY,
                     updatedReview.getContent(),
-                    updatedReview.isPositive(),
+                    updatedReview.getIsPositive(),
                     updatedReview.getUserId(),
                     updatedReview.getFilmId(),
                     updatedReview.getReviewId()
