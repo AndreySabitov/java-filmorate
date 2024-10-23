@@ -32,10 +32,12 @@ public class ReviewService {
     }
 
     public Review updateReview(Review newReview) {
+        log.info("Обновление отзыва.");
         return reviewStorage.updateReview(newReview);
     }
 
     public void removeReview(Integer id) {
+        log.info("Удаление отзыва.");
         reviewStorage.removeReview(id);
     }
 
@@ -43,6 +45,7 @@ public class ReviewService {
         try {
             return reviewStorage.getReviewById(id);
         } catch (Exception e) {
+            log.info("Отзыв под id={} не найден", id);
             throw new NotFoundException(String.format("Отзыв под id=%s не найден", id));
         }
     }
@@ -52,18 +55,28 @@ public class ReviewService {
     }
 
     public void addReviewLike(Integer reviewId, Integer userId) {
+        if (reviewDislikeStorage.checkDislikeByUserId(reviewId, userId)) {
+            log.trace("Удаление пересекающегося дизлайка.");
+            reviewDislikeStorage.removeReviewDislike(reviewId, userId);
+        }
         reviewLikeStorage.addReviewLike(reviewId, userId);
     }
 
     public void removeReviewLike(Integer reviewId, Integer userId) {
+        log.info("Удаление лайка.");
         reviewLikeStorage.removeReviewLike(reviewId, userId);
     }
 
     public void addReviewDislike(Integer reviewId, Integer userId) {
+        if (reviewLikeStorage.checkLikeByUserId(reviewId, userId)) {
+            log.trace("Удаление пересекающегося лайка.");
+            reviewLikeStorage.removeReviewLike(reviewId, userId);
+        }
         reviewDislikeStorage.addReviewDislike(reviewId, userId);
     }
 
     public void removeReviewDislike(Integer reviewId, Integer userId) {
+        log.info("Удаление дизлайка.");
         reviewDislikeStorage.removeReviewDislike(reviewId, userId);
     }
 }
