@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.BaseDbStorage;
@@ -29,7 +30,13 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                     "GROUP BY f.FILM_ID ORDER BY COUNT(user_id) DESC " +
                     "LIMIT ?";
     private static final String INSERT_FILM_GENRES_QUERY = "INSERT INTO films_genres (film_id, genre_id) VALUES (?, ?)";
+    private static final String INSERT_FILM_DIRECTORS_QUERY = "INSERT INTO films_directors (film_id, director_id) " +
+            "VALUES (?, ?)";
     private static final String DELETE_FILM_QUERY = "DELETE FROM films WHERE film_id = ?";
+    private static final String GET_FILMS_BY_DIRECTOR = "SELECT f.film_id, title, description, release_date, duration, " +
+            "rating_id FROM films AS f LEFT OUTER JOIN (SELECT film_id, " +
+            "count(user_id) AS likes FROM user_likes GROUP BY film_id) AS ul ON f.film_id = ul.film_id WHERE f.film_id IN " +
+            "(SELECT film_id FROM films_directors WHERE director_id = ?) ORDER BY ?;";
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate, RowMapper<Film> mapper) {
         super(jdbcTemplate, mapper);
@@ -60,21 +67,28 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         Set<Integer> genresIds = film.getGenres().stream().map(Genre::getId).collect(Collectors.toSet());
         genresIds.forEach(integer -> update(INSERT_FILM_GENRES_QUERY, id, integer));
         log.info("жанры добавлены");
+        log.info("добавляем ружиссеров");
+        Set<Integer> directorsIds = film.getDirectors().stream().map(Director::getId).collect(Collectors.toSet());
+        directorsIds.forEach(integer -> update(INSERT_FILM_DIRECTORS_QUERY, id, integer));
+        log.info("режиссеры добавлены");
         return id;
     }
 
     @Override
     public void updateFilm(Film film) {
+        int id = film.getId();
         update(UPDATE_FILM_QUERY,
                 film.getName(),
                 film.getDescription(),
                 film.getReleaseDate(),
                 film.getDuration(),
                 film.getMpa().getId(),
-                film.getId()
+                id
         );
         film.getGenres().stream().map(Genre::getId)
-                .forEach(integer -> update(INSERT_FILM_GENRES_QUERY, film.getId(), integer));
+                .forEach(integer -> update(INSERT_FILM_GENRES_QUERY, id, integer));
+        film.getDirectors().stream().map(Director::getId).collect(Collectors.toSet())
+                .forEach(integer -> update(INSERT_FILM_DIRECTORS_QUERY, id, integer));
     }
 
     @Override
@@ -87,4 +101,16 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     public List<Film> getMostPopularFilms(Integer count) {
         return findAll(GET_MOST_POPULAR_FILMS_QUERY, count);
     }
+
+    @Override
+    public List<Film> getFilmsByDirector(Integer dirId, String sortBy) {
+        String orderBy;
+        if (sortBy.equals("year")) {
+            orderBy = "release_date";
+        } else {
+            orderBy = "likes";
+        }
+        return findAll(GET_FILMS_BY_DIRECTOR, dirId, orderBy);
+    }
+
 }
