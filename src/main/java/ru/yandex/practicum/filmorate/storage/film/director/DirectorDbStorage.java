@@ -46,7 +46,7 @@ public class DirectorDbStorage extends BaseDbStorage<Director> implements Direct
 
     @Override
     public void updateDirector(Director director) {
-         update(UPDATE_DIRECTOR_QUERY, director.getName(), director.getId());
+        update(UPDATE_DIRECTOR_QUERY, director.getName(), director.getId());
     }
 
     @Override
