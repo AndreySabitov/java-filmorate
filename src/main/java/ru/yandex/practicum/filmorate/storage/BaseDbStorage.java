@@ -21,11 +21,7 @@ public class BaseDbStorage<T> {
     }
 
     protected T findOne(String query, Object... params) {
-        try {
-            return jdbcTemplate.queryForObject(query, mapper, params);
-        } catch (Exception e) {
-            throw new NotFoundException("Not found");
-        }
+        return jdbcTemplate.queryForObject(query, mapper, params);
     }
 
     protected int insert(String query, Object... params) {

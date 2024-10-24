@@ -14,4 +14,6 @@ public interface LikeStorage {
     void deleteLikesOfFilm(Integer filmId);
 
     void deleteLikesOfUser(Integer userId);
+
+    List<Integer> getLikesOfUser(Integer id);
 }
