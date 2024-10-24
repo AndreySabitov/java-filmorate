@@ -11,7 +11,6 @@ import ru.yandex.practicum.filmorate.storage.BaseDbStorage;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Primary
 @Slf4j
@@ -77,27 +76,28 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
     }
 
     @Override
-    public List<Review> getAllReviewsByFilmId(Optional<Integer> filmId, int count) {
-        if (filmId.isPresent()) {
-            final String getReviewsByFilmIdLimited = GET_ALL_QUERY.concat(" WHERE film_id=? " +
-                    "ORDER BY usefulness_rate DESC LIMIT ?");
-            try {
-                log.info("Получение списка из {} отзывов фильма под id={}", count, filmId.get());
-                return findAll(
-                        getReviewsByFilmIdLimited,
-                        filmId.get(),
-                        count
-                );
-            } catch (NotFoundException e) {
-                return new ArrayList<>();
-            }
-        } else {
-            try {
-                log.info("Получение списка всех отзывов");
-                return findAll(GET_ALL_QUERY.concat(" ORDER BY usefulness_rate DESC"));
-            } catch (NotFoundException e) {
-                return new ArrayList<>();
-            }
+    public List<Review> getAllReviewsByFilmId(Integer filmId, int count) {
+        final String getReviewsByFilmIdLimited = GET_ALL_QUERY.concat(" WHERE film_id=? " +
+                "ORDER BY usefulness_rate DESC LIMIT ?");
+        try {
+            log.info("Получение списка из {} отзывов фильма под id={}", count, filmId);
+            return findAll(
+                    getReviewsByFilmIdLimited,
+                    filmId,
+                    count
+            );
+        } catch (NotFoundException e) {
+            return new ArrayList<>();
+        }
+    }
+
+    @Override
+    public List<Review> getAllReviews() {
+        try {
+            log.info("Получение списка всех отзывов");
+            return findAll(GET_ALL_QUERY.concat(" ORDER BY usefulness_rate DESC"));
+        } catch (NotFoundException e) {
+            return new ArrayList<>();
         }
     }
 
