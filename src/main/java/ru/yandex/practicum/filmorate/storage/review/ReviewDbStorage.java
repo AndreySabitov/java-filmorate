@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.review;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -12,7 +11,6 @@ import ru.yandex.practicum.filmorate.storage.BaseDbStorage;
 import java.util.ArrayList;
 import java.util.List;
 
-@Primary
 @Slf4j
 @Repository
 public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStorage {
