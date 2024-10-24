@@ -13,7 +13,7 @@ import ru.yandex.practicum.filmorate.storage.film.rating.MpaStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 import ru.yandex.practicum.filmorate.storage.user.friendship.FriendshipStorage;
 
-import java.util.*;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -87,52 +87,12 @@ public class UserService {
     }
 
     public List<Film> getRecommendedFilms(Integer id) {
-        List<Film> recommendedFilms = new ArrayList<>();
-
-        List<Integer> likesOfUser = likeStorage.getLikesOfUser(id);
-        if (likesOfUser.isEmpty()) {
-            return recommendedFilms;
-        }
-        log.info("нашли id фильмов, которые нравятся пользователю: {}", likesOfUser);
-
-        Map<Integer, List<Integer>> likesOfUsers = new HashMap<>();
-        likeStorage.getAllLikes().stream().filter(userLike -> !Objects.equals(userLike.getUserId(), id))
-                .forEach(userLike -> {
-                    if (!likesOfUsers.containsKey(userLike.getUserId())) {
-                        likesOfUsers.put(userLike.getUserId(), List.of(userLike.getFilmId()));
-                    } else {
-                        List<Integer> filmsIds = new ArrayList<>(likesOfUsers.get(userLike.getUserId()));
-                        filmsIds.add(userLike.getFilmId());
-                        likesOfUsers.put(userLike.getUserId(), filmsIds);
-                    }
-                });
-
-        if (likesOfUsers.isEmpty()) {
-            return recommendedFilms;
-        }
-
-        Map<Integer, Integer> intersectionMap = new HashMap<>();
-        likesOfUsers.keySet().forEach(i -> {
-            int count = Math.toIntExact(likesOfUsers.get(i).stream().filter(likesOfUser::contains).count());
-            if (count != 0) {
-                intersectionMap.put(i, count);
-            }
+        List<Film> recommendedFilms = filmStorage.getRecommendedFilms(id);
+        recommendedFilms.forEach(film -> {
+            int filmId = film.getId();
+            film.getGenres().addAll(genreStorage.getGenresOfFilm(filmId));
+            film.setMpa(mpaStorage.getRatingOfFilm(filmId));
         });
-        log.info("получили Map с пересечениями лайков с другими пользователями {}", intersectionMap);
-
-        if (intersectionMap.isEmpty()) {
-            return recommendedFilms;
-        }
-
-        Integer otherId = intersectionMap.entrySet().stream().max(Map.Entry.comparingByValue()).get().getKey();
-        likesOfUsers.get(otherId).stream().filter(i -> !likesOfUser.contains(i)).map(filmStorage::getFilmById)
-                .forEach(film -> {
-                    int filmId = film.getId();
-                    film.getGenres().addAll(genreStorage.getGenresOfFilm(filmId));
-                    film.setMpa(mpaStorage.getRatingOfFilm(filmId));
-                    recommendedFilms.add(film);
-                });
-
         return recommendedFilms;
     }
 
