@@ -26,6 +26,7 @@ public class Film {
     @Positive(message = "продолжительность фильма не может быть отрицательной")
     private Integer duration;
     private final List<Genre> genres = new ArrayList<>();
+    private final List<Director> directors = new ArrayList<>();
     @NotNull
     private MPA mpa;
 }
