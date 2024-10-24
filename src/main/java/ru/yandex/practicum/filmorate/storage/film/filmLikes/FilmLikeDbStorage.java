@@ -18,6 +18,8 @@ public class FilmLikeDbStorage extends BaseDbStorage<UserLikes> implements LikeS
     private static final String GET_IDS_OF_USERS_LIKES_QUERY = "SELECT user_id FROM user_likes WHERE film_id = ?";
     private static final String DELETE_LIKES_OF_FILM_QUERY = DELETE_QUERY.concat("WHERE film_id = ?");
     private static final String DELETE_LIKES_OF_USER_QUERY = DELETE_QUERY.concat("WHERE user_id = ?");
+    private static final String GET_LIKES_OF_USER_QUERY = "SELECT film_id FROM user_likes WHERE user_id = ?";
+    private static final String GET_ALL_LIKES = "SELECT * FROM user_likes";
 
     public FilmLikeDbStorage(JdbcTemplate jdbcTemplate, RowMapper<UserLikes> mapper) {
         super(jdbcTemplate, mapper);
@@ -45,11 +47,16 @@ public class FilmLikeDbStorage extends BaseDbStorage<UserLikes> implements LikeS
 
     @Override
     public List<UserLikes> getAllLikes() {
-        return findAll(GET_LIKES_OF_ALL_FILMS);
+        return findAll(GET_ALL_LIKES);
     }
 
     @Override
     public List<Integer> getIdsOfUserLikes(Integer id) {
         return jdbcTemplate.queryForList(GET_IDS_OF_USERS_LIKES_QUERY, Integer.class, id);
+    }
+
+    @Override
+    public List<Integer> getLikesOfUser(Integer id) {
+        return jdbcTemplate.queryForList(GET_LIKES_OF_USER_QUERY, Integer.class, id);
     }
 }

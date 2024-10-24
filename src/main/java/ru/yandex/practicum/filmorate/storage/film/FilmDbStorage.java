@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.BaseDbStorage;
@@ -30,6 +31,23 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                     "LIMIT ?";
     private static final String INSERT_FILM_GENRES_QUERY = "INSERT INTO films_genres (film_id, genre_id) VALUES (?, ?)";
     private static final String DELETE_FILM_QUERY = "DELETE FROM films WHERE film_id = ?";
+    private static final String GET_RECOMMENDED_FILMS = GET_ALL_FILMS_QUERY
+            .concat("""
+                    f WHERE FILM_ID IN (SELECT UL2.FILM_ID
+                                        FROM USER_LIKES ul2
+                                        WHERE USER_ID = (SELECT USER_ID
+                                                         FROM USER_LIKES ul
+                                                         WHERE FILM_ID IN (SELECT film_id
+                                                                           FROM USER_LIKES ul
+                                                                           WHERE USER_ID = ?)
+                                                           AND USER_ID != ?
+                                                         GROUP BY USER_ID
+                                                         ORDER BY COUNT(FILM_ID) DESC
+                                                         LIMIT 1)
+                                        EXCEPT
+                                        SELECT ul.FILM_ID
+                                        FROM USER_LIKES ul
+                                        WHERE USER_ID = ?);""");
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate, RowMapper<Film> mapper) {
         super(jdbcTemplate, mapper);
@@ -42,7 +60,11 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
     @Override
     public Film getFilmById(Integer id) {
-        return findOne(GET_FILM_BY_ID_QUERY, id);
+        try {
+            return findOne(GET_FILM_BY_ID_QUERY, id);
+        } catch (Exception e) {
+            throw new NotFoundException("Фильм не найден");
+        }
     }
 
     @Override
@@ -86,5 +108,10 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     @Override
     public List<Film> getMostPopularFilms(Integer count) {
         return findAll(GET_MOST_POPULAR_FILMS_QUERY, count);
+    }
+
+    @Override
+    public List<Film> getRecommendedFilms(Integer id) {
+        return findAll(GET_RECOMMENDED_FILMS, id, id, id);
     }
 }

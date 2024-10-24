@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.storage.film.genre;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.BaseDbStorage;
 
@@ -27,7 +28,11 @@ public class GenreDbStorage extends BaseDbStorage<Genre> implements GenreStorage
 
     @Override
     public Genre getGenreById(Integer id) {
-        return findOne(GET_GENRE_BY_ID_QUERY, id);
+        try {
+            return findOne(GET_GENRE_BY_ID_QUERY, id);
+        } catch (Exception e) {
+            throw new NotFoundException("Жанр не найден");
+        }
     }
 
     @Override
