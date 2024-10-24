@@ -50,8 +50,12 @@ public class ReviewService {
         }
     }
 
-    public List<Review> getAllReviewsByFilmId(Optional<Integer> filmId, int count) {
-        return reviewStorage.getAllReviewsByFilmId(filmId, count);
+    public List<Review> getReviews(Optional<Integer> filmId, int count) {
+        if (filmId.isPresent()) {
+            return reviewStorage.getAllReviewsByFilmId(filmId.get(), count);
+        } else {
+            return reviewStorage.getAllReviews();
+        }
     }
 
     public void addReviewLike(Integer reviewId, Integer userId) {
