@@ -45,10 +45,10 @@ public class ReviewController {
     }
 
     @GetMapping
-    public List<Review> getReviewsByFilmId(@RequestParam Optional<Integer> filmId,
+    public List<Review> getReviews(@RequestParam Optional<Integer> filmId,
                                            @RequestParam(defaultValue = "10") int count) {
 
-        return service.getAllReviewsByFilmId(filmId, count);
+        return service.getReviews(filmId, count);
     }
 
     @PutMapping(LIKE_PATH)
