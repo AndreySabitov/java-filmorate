@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.storage.film.director;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.storage.BaseDbStorage;
 
@@ -30,7 +31,12 @@ public class DirectorDbStorage extends BaseDbStorage<Director> implements Direct
 
     @Override
     public Director getDirectorById(Integer dirId) {
-        return findOne(GET_DIRECTOR_BY_ID_QUERY, dirId);
+        try {
+            return findOne(GET_DIRECTOR_BY_ID_QUERY, dirId);
+        } catch (Exception e) {
+            throw new NotFoundException("Режиссер не найден");
+        }
+
     }
 
     @Override
