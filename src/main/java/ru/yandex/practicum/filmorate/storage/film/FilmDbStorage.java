@@ -32,19 +32,22 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     private static final String INSERT_FILM_GENRES_QUERY = "INSERT INTO films_genres (film_id, genre_id) VALUES (?, ?)";
     private static final String DELETE_FILM_QUERY = "DELETE FROM films WHERE film_id = ?";
     private static final String GET_RECOMMENDED_FILMS = GET_ALL_FILMS_QUERY
-            .concat("f WHERE FILM_ID IN (SELECT UL2.FILM_ID \n" +
-            "                                FROM USER_LIKES ul2 \n" +
-            "                                WHERE USER_ID IN (SELECT USER_ID \n" +
-            "                                                  FROM USER_LIKES ul \n" +
-            "                                                  WHERE FILM_ID IN (SELECT film_id\n" +
-            "                                                                    FROM USER_LIKES ul \n" +
-            "                                                                    WHERE USER_ID = ?)\n" +
-            "                                                                    AND USER_ID != ?\n" +
-            "                                                                    GROUP BY USER_ID)\n" +
-            "                                EXCEPT               \n" +
-            "                                SELECT ul.FILM_ID \n" +
-            "                                FROM USER_LIKES ul\n" +
-            "                                WHERE USER_ID = ?)");
+            .concat("""
+                    f WHERE FILM_ID IN (SELECT UL2.FILM_ID
+                                        FROM USER_LIKES ul2
+                                        WHERE USER_ID = (SELECT USER_ID
+                                                         FROM USER_LIKES ul
+                                                         WHERE FILM_ID IN (SELECT film_id
+                                                                           FROM USER_LIKES ul
+                                                                           WHERE USER_ID = ?)
+                                                           AND USER_ID != ?
+                                                         GROUP BY USER_ID
+                                                         ORDER BY COUNT(FILM_ID) DESC
+                                                         LIMIT 1)
+                                        EXCEPT
+                                        SELECT ul.FILM_ID
+                                        FROM USER_LIKES ul
+                                        WHERE USER_ID = ?);""");
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate, RowMapper<Film> mapper) {
         super(jdbcTemplate, mapper);
