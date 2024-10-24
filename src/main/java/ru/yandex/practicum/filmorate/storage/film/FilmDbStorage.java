@@ -89,7 +89,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         Set<Integer> genresIds = film.getGenres().stream().map(Genre::getId).collect(Collectors.toSet());
         genresIds.forEach(integer -> update(INSERT_FILM_GENRES_QUERY, id, integer));
         log.info("жанры добавлены");
-        log.info("добавляем ружиссеров");
+        log.info("добавляем режиссеров");
         Set<Integer> directorsIds = film.getDirectors().stream().map(Director::getId).collect(Collectors.toSet());
         directorsIds.forEach(integer -> update(INSERT_FILM_DIRECTORS_QUERY, id, integer));
         log.info("режиссеры добавлены");
