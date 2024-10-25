@@ -28,13 +28,13 @@ public class FilmService {
 
     public List<Film> getFilms() {
         List<Film> films = filmStorage.getFilms();
-        films.forEach(this::setGenresMpaAndDirectors);
+        films.forEach(this::setFields);
         return films;
     }
 
     public Film getFilmById(Integer id) {
         Film film = filmStorage.getFilmById(id);
-        setGenresMpaAndDirectors(film);
+        setFields(film);
         return film;
     }
 
@@ -59,7 +59,6 @@ public class FilmService {
         Film film = getFilmById(filmId);
         likeStorage.deleteLikesOfFilm(filmId);
         genreDbStorage.deleteGenresOfFilm(filmId);
-        directorDbStorage.deleteDirectorOfFilm(filmId);
         log.info("удалили инфу о фильме из остальных таблиц");
         filmStorage.deleteFilm(filmId);
         return film;
@@ -77,17 +76,17 @@ public class FilmService {
 
     public List<Film> getMostPopularFilms(Integer count) {
         List<Film> films = filmStorage.getMostPopularFilms(count);
-        films.forEach(this::setGenresMpaAndDirectors);
+        films.forEach(this::setFields);
         return films;
     }
 
     public List<Film> getFilmsByDirector(Integer dirId, String sortBy) {
         List<Film> films = filmStorage.getFilmsByDirector(dirId, sortBy);
-        films.forEach(this::setGenresMpaAndDirectors);
+        films.forEach(this::setFields);
         return films;
     }
 
-    private void setGenresMpaAndDirectors(Film film) {
+    private void setFields(Film film) {
         int id = film.getId();
         film.getGenres().addAll(genreDbStorage.getGenresOfFilm(id));
         film.setMpa(mpaStorage.getRatingOfFilm(id));

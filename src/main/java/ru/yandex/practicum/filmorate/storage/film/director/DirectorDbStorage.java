@@ -16,7 +16,6 @@ public class DirectorDbStorage extends BaseDbStorage<Director> implements Direct
     private static final String GET_ALL_DIRECTORS_QUERY = "SELECT * FROM directors";
     private static final String GET_DIRECTOR_BY_ID_QUERY = "SELECT * FROM directors WHERE director_id = ?";
     private static final String ADD_DIRECTOR_QUERY = "INSERT INTO directors (director_name) VALUES (?)";
-    private static final String DELETE_DIRECTOR_OF_FILM_QUERY = "DELETE FROM films_directors WHERE film_id = ?";
     private static final String UPDATE_DIRECTOR_QUERY = "UPDATE directors SET director_name = ? WHERE director_id = ?";
     private static final String DELETE_DIRECTOR_QUERY = "DELETE FROM directors WHERE director_id = ?";
 
@@ -59,8 +58,4 @@ public class DirectorDbStorage extends BaseDbStorage<Director> implements Direct
         return findAll(GET_DIRECTORS_OF_FILM_QUERY, filmId);
     }
 
-    @Override
-    public void deleteDirectorOfFilm(Integer filmId) {
-        delete(DELETE_DIRECTOR_OF_FILM_QUERY, filmId);
-    }
 }

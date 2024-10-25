@@ -21,13 +21,13 @@ public class DirectorService {
     }
 
     public Director addDirector(Director director) {
-        int id = directorStorage.addDirector(director);
-        return getDirectorById(id);
+        director.setId(directorStorage.addDirector(director));
+        return director;
     }
 
     public Director updateDirector(Director director) {
         directorStorage.updateDirector(director);
-        return getDirectorById(director.getId());
+        return director;
     }
 
     public void deleteDirector(Integer dirId) {
