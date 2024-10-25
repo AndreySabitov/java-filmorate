@@ -4,12 +4,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.enums.EventType;
+import ru.yandex.practicum.filmorate.model.enums.OperationType;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.film.filmLikes.LikeStorage;
 import ru.yandex.practicum.filmorate.storage.film.genre.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.film.rating.MpaStorage;
+import ru.yandex.practicum.filmorate.storage.history.HistoryDbStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 import ru.yandex.practicum.filmorate.storage.user.friendship.FriendshipStorage;
 
@@ -25,6 +29,7 @@ public class UserService {
     private final FilmStorage filmStorage;
     private final GenreStorage genreStorage;
     private final MpaStorage mpaStorage;
+    private final HistoryDbStorage historyDbStorage;
 
     public List<User> getUsers() {
         return userStorage.getUsers();
@@ -63,6 +68,8 @@ public class UserService {
         userStorage.getUserById(id);
         userStorage.getUserById(friendId);
         friendshipDbStorage.addFriend(id, friendId);
+        saveHistoryEvent(id, friendId, OperationType.ADD);
+        log.info("событие добавления в друзья сохранено в истории");
         return getUserById(id);
     }
 
@@ -70,6 +77,8 @@ public class UserService {
         userStorage.getUserById(id);
         userStorage.getUserById(friendId);
         friendshipDbStorage.deleteFriend(id, friendId);
+        saveHistoryEvent(id, friendId, OperationType.REMOVE);
+        log.info("событие удаления из друзей сохранено в истории");
         return getUserById(id);
     }
 
@@ -108,5 +117,15 @@ public class UserService {
             user.setName(user.getLogin());
         }
         log.info("Валидация прошла успешно");
+    }
+
+    private void saveHistoryEvent(Integer userId, Integer friendId, OperationType operationType) {
+        historyDbStorage.addEvent(Event.builder()
+                .userId(userId)
+                .timestamp(System.currentTimeMillis())
+                .eventType(EventType.FRIEND)
+                .operationType(operationType)
+                .entityId(friendId)
+                .build());
     }
 }
