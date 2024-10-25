@@ -48,6 +48,25 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                                         SELECT ul.FILM_ID
                                         FROM USER_LIKES ul
                                         WHERE USER_ID = ?);""");
+    private static final String GET_COMMON_FILMS_QUERY = """
+            WITH user_films AS (
+            SELECT film_id, COUNT(*) AS likes_count
+            FROM user_likes
+            WHERE user_id =?
+            GROUP BY film_id
+            ),
+            friend_films AS (
+            SELECT film_id, COUNT(*) AS likes_count
+            FROM user_likes
+            WHERE user_id =?
+            GROUP BY film_id
+            )
+            SELECT f.*
+            FROM films f
+            JOIN user_films uf ON f.film_id = uf.film_id
+            JOIN friend_films ff ON f.film_id = ff.film_id
+            ORDER BY uf.likes_count DESC
+            """;
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate, RowMapper<Film> mapper) {
         super(jdbcTemplate, mapper);
@@ -107,6 +126,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
     @Override
     public List<Film> getMostPopularFilms(Integer count) {
+        log.info("получаем {} самых популярных фильмов", count);
         return findAll(GET_MOST_POPULAR_FILMS_QUERY, count);
     }
 
@@ -114,4 +134,11 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     public List<Film> getRecommendedFilms(Integer id) {
         return findAll(GET_RECOMMENDED_FILMS, id, id, id);
     }
+
+    @Override
+    public List<Film> getCommonFilms(Integer userId, Integer friendId) {
+    log.info("получаем общие фильмы для пользователей {} и {}", userId, friendId);
+    return findAll(GET_COMMON_FILMS_QUERY, userId, friendId);
+    }
+
 }
