@@ -49,23 +49,13 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                                         FROM USER_LIKES ul
                                         WHERE USER_ID = ?);""");
     private static final String GET_COMMON_FILMS_QUERY = """
-            WITH user_films AS (
-            SELECT film_id, COUNT(*) AS likes_count
-            FROM user_likes
-            WHERE user_id =?
-            GROUP BY film_id
-            ),
-            friend_films AS (
-            SELECT film_id, COUNT(*) AS likes_count
-            FROM user_likes
-            WHERE user_id =?
-            GROUP BY film_id
-            )
-            SELECT f.*
-            FROM films f
-            JOIN user_films uf ON f.film_id = uf.film_id
-            JOIN friend_films ff ON f.film_id = ff.film_id
-            ORDER BY uf.likes_count DESC
+            SELECT f.FILM_ID, f.TITLE, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, f.RATING_ID
+                                        FROM FILMS f
+                                        LEFT JOIN USER_LIKES ul ON f.FILM_ID = ul.FILM_ID
+                                        WHERE f.FILM_ID IN (SELECT ul2.FILM_ID FROM USER_LIKES ul2 WHERE USER_ID = ?)
+                                          AND f.FILM_ID IN (SELECT ul3.FILM_ID FROM USER_LIKES ul3 WHERE USER_ID = ?)
+                                        GROUP BY f.FILM_ID
+                                        ORDER BY COUNT(ul.USER_ID) DESC;
             """;
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate, RowMapper<Film> mapper) {
