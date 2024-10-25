@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.model.enums.EventType;
@@ -68,7 +67,8 @@ public class UserService {
         userStorage.getUserById(id);
         userStorage.getUserById(friendId);
         friendshipDbStorage.addFriend(id, friendId);
-        saveHistoryEvent(id, friendId, OperationType.ADD);
+        historyDbStorage.saveHistoryEvent(id, System.currentTimeMillis(),
+                EventType.FRIEND, OperationType.ADD, friendId);
         log.info("событие добавления в друзья сохранено в истории");
         return getUserById(id);
     }
@@ -77,7 +77,8 @@ public class UserService {
         userStorage.getUserById(id);
         userStorage.getUserById(friendId);
         friendshipDbStorage.deleteFriend(id, friendId);
-        saveHistoryEvent(id, friendId, OperationType.REMOVE);
+        historyDbStorage.saveHistoryEvent(id, System.currentTimeMillis(),
+                EventType.FRIEND, OperationType.REMOVE, friendId);
         log.info("событие удаления из друзей сохранено в истории");
         return getUserById(id);
     }
@@ -117,15 +118,5 @@ public class UserService {
             user.setName(user.getLogin());
         }
         log.info("Валидация прошла успешно");
-    }
-
-    private void saveHistoryEvent(Integer userId, Integer friendId, OperationType operationType) {
-        historyDbStorage.addEvent(Event.builder()
-                .userId(userId)
-                .timestamp(System.currentTimeMillis())
-                .eventType(EventType.FRIEND)
-                .operationType(operationType)
-                .entityId(friendId)
-                .build());
     }
 }

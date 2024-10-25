@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,17 +14,16 @@ import ru.yandex.practicum.filmorate.model.enums.OperationType;
 @Builder
 public class Event {
     @NotNull
-    private long eventId;
+    private Integer eventId;
     @NotNull
-    private long userId;
+    private Integer userId;
     @NotNull
     private long timestamp;
     @NotNull
     private EventType eventType;
     @NotNull
-    @JsonProperty("operation")
-    private OperationType operationType;
+    private OperationType operation;
     @NotNull
-    private long entityId;
+    private Integer entityId;
 
 }

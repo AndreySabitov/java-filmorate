@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.enums.EventType;
@@ -71,14 +70,19 @@ public class FilmService {
 
     public Film addLike(Integer id, Integer userId) {
         likeStorage.addLike(id, userId);
-        saveHistoryEvent(id, userId, OperationType.ADD);
+        historyDbStorage.saveHistoryEvent(userId, System.currentTimeMillis(), EventType.LIKE, OperationType.ADD, id);
         log.info("событие добавлено в историю: добавлен лайк для фильма с id {}", id);
         return getFilmById(id);
     }
 
     public Film deleteLike(Integer id, Integer userId) {
         likeStorage.deleteLike(id, userId);
-        saveHistoryEvent(id, userId, OperationType.REMOVE);
+        historyDbStorage.saveHistoryEvent(
+                userId,
+                System.currentTimeMillis(),
+                EventType.LIKE,
+                OperationType.REMOVE,
+                id);
         log.info("событие добавлено в историю: удален лайк для фильма с id {}", id);
         return getFilmById(id);
     }
@@ -112,15 +116,5 @@ public class FilmService {
             throw new ValidationException("задан некорректный id MPA");
         }
         log.info("Валидация прошла успешно");
-    }
-
-    private void saveHistoryEvent(Integer filmId, Integer userId, OperationType operationType) {
-        historyDbStorage.addEvent(Event.builder()
-                .userId(userId)
-                .timestamp(System.currentTimeMillis())
-                .eventType(EventType.LIKE)
-                .operationType(operationType)
-                .entityId(filmId)
-                .build());
     }
 }

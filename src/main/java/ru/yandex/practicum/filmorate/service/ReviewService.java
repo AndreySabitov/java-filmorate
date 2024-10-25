@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.model.enums.EventType;
 import ru.yandex.practicum.filmorate.model.enums.OperationType;
@@ -28,7 +27,12 @@ public class ReviewService {
     public Review addNewReview(Review newReview) {
         try {
             Review addedReview = reviewStorage.addNewReview(newReview);
-            saveHistoryEvent(addedReview.getReviewId(), addedReview.getUserId(), OperationType.ADD);
+            historyDbStorage.saveHistoryEvent(
+                    newReview.getUserId(),
+                    System.currentTimeMillis(),
+                    EventType.REVIEW,
+                    OperationType.ADD,
+                    addedReview.getReviewId());
             log.info("Отзыв добавлен в историю: добавлен новый отзыв с id {}", addedReview.getReviewId());
             return addedReview;
         } catch (Exception e) {
@@ -42,7 +46,12 @@ public class ReviewService {
     public Review updateReview(Review newReview) {
         log.info("Обновление отзыва.");
         Review review = reviewStorage.updateReview(newReview);
-        saveHistoryEvent(review.getReviewId(), review.getUserId(), OperationType.UPDATE);
+        historyDbStorage.saveHistoryEvent(
+                newReview.getUserId(),
+                System.currentTimeMillis(),
+                EventType.REVIEW,
+                OperationType.UPDATE,
+                review.getReviewId());
         log.info("Отзыв изменен в истории: изменен отзыв с id {}", review.getReviewId());
         return review;
     }
@@ -51,7 +60,12 @@ public class ReviewService {
         log.info("Удаление отзыва.");
         Integer userId = getReviewById(id).getUserId();
         reviewStorage.removeReview(id);
-        saveHistoryEvent(id, userId, OperationType.REMOVE);
+        historyDbStorage.saveHistoryEvent(
+                userId,
+                System.currentTimeMillis(),
+                EventType.REVIEW,
+                OperationType.REMOVE,
+                id);
         log.info("Отзыв удален из истории: удален отзыв с id {}", id);
     }
 
@@ -96,16 +110,5 @@ public class ReviewService {
     public void removeReviewDislike(Integer reviewId, Integer userId) {
         log.info("Удаление дизлайка.");
         reviewDislikeStorage.removeReviewDislike(reviewId, userId);
-    }
-
-    private void saveHistoryEvent(Integer id, Integer userId, OperationType operationType) {
-        historyDbStorage.addEvent(Event.builder()
-                .userId(userId)
-                .timestamp(System.currentTimeMillis())
-                .eventType(EventType.REVIEW)
-                .operationType(operationType)
-                .entityId(id)
-                .build()
-        );
     }
 }
