@@ -18,9 +18,6 @@ public class FriendshipDbStorage extends BaseDbStorage<Friendship> implements Fr
             "WHERE user_id1 = ?";
     private static final String GET_FRIENDSHIP_QUERY = "SELECT u.USER_ID AS user_id1, f.USER_ID2, f.STATUS_ID " +
             "FROM USERS u LEFT JOIN FRIENDSHIP f ON u.USER_ID = f.USER_ID1";
-    private static final String DELETE_FRIENDSHIP_OF_USER_QUERY = DELETE_QUERY.concat("WHERE user_id1 = ? " +
-            "OR user_id2 = ?");
-
 
     public FriendshipDbStorage(JdbcTemplate jdbcTemplate, RowMapper<Friendship> mapper) {
         super(jdbcTemplate, mapper);
@@ -44,10 +41,5 @@ public class FriendshipDbStorage extends BaseDbStorage<Friendship> implements Fr
     @Override
     public List<Integer> getFriendshipOfUser(Integer id) {
         return jdbcTemplate.queryForList(GET_FRIENDSHIP_OF_USER_QUERY, Integer.class, id);
-    }
-
-    @Override
-    public void deleteFriendshipOfUser(Integer userId) {
-        delete(DELETE_FRIENDSHIP_OF_USER_QUERY, userId, userId);
     }
 }

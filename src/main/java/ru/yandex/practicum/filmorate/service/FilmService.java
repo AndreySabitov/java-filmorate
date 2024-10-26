@@ -57,9 +57,6 @@ public class FilmService {
 
     public Film deleteFilm(Integer filmId) {
         Film film = getFilmById(filmId);
-        likeStorage.deleteLikesOfFilm(filmId);
-        genreDbStorage.deleteGenresOfFilm(filmId);
-        log.info("удалили инфу о фильме из остальных таблиц");
         filmStorage.deleteFilm(filmId);
         return film;
     }
