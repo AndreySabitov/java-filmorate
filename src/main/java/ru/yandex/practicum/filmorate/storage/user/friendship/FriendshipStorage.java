@@ -10,6 +10,4 @@ public interface FriendshipStorage {
     List<Friendship> getFriendship();
 
     List<Integer> getFriendshipOfUser(Integer id);
-
-    void deleteFriendshipOfUser(Integer userId);
 }
