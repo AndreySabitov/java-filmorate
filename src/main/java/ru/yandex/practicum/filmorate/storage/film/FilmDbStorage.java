@@ -21,9 +21,13 @@ import java.util.stream.Collectors;
 public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     private static final String GET_ALL_FILMS_QUERY = "SELECT * FROM films ";
     private static final String GET_FILM_BY_ID_QUERY = GET_ALL_FILMS_QUERY.concat("WHERE film_id = ?");
-    private static final String GET_ALL_FILMS_WITH_COUNT_LIKES = "SELECT f.film_id, title, description, " +
-            "release_date, duration, rating_id, count_likes FROM films AS f LEFT JOIN (SELECT film_id, " +
-            "count(user_id) AS count_likes FROM user_likes GROUP BY film_id) AS ul ON f.film_id = ul.film_id ";
+    private static final String GET_ALL_FILMS_WITH_COUNT_LIKES = """
+            SELECT f.film_id, title, description, release_date, duration, rating_id, count_likes
+            FROM films AS f
+            LEFT JOIN (SELECT film_id, count(user_id) AS count_likes
+                       FROM user_likes
+                       GROUP BY film_id) AS ul ON f.film_id = ul.film_id
+            """;
     private static final String INSERT_FILM_QUERY = "INSERT INTO films (title, description, release_date, duration, " +
             "rating_id) VALUES(?,?,?,?,?)";
     private static final String UPDATE_FILM_QUERY = "UPDATE films SET title = ?, description = ?, release_date = ?, " +
@@ -51,10 +55,6 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                                         SELECT ul.FILM_ID
                                         FROM USER_LIKES ul
                                         WHERE USER_ID = ?);""");
-    private static final String GET_FILMS_BY_DIRECTOR = "SELECT f.film_id, title, description, release_date , duration, " +
-            "rating_id FROM films AS f LEFT OUTER JOIN (SELECT film_id, " +
-            "count(user_id) AS likes FROM user_likes GROUP BY film_id) AS ul ON f.film_id = ul.film_id WHERE f.film_id IN " +
-            "(SELECT film_id FROM films_directors WHERE director_id = ?) ORDER BY ";
     private static final String GET_COMMON_FILMS_QUERY = """
             SELECT f.FILM_ID, f.TITLE, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, f.RATING_ID
                                         FROM FILMS f
@@ -147,6 +147,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
     @Override
     public List<Film> getFilmsByDirector(Integer dirId, String sortBy) {
+        log.info("получаем фильмы по режиссеру");
         String orderBy;
         if (sortBy.equals("year")) {
             orderBy = "ORDER BY release_date";
@@ -159,12 +160,13 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
     @Override
     public List<Film> getCommonFilms(Integer userId, Integer friendId) {
-    log.info("получаем общие фильмы для пользователей {} и {}", userId, friendId);
-    return findAll(GET_COMMON_FILMS_QUERY, userId, friendId);
+        log.info("получаем общие фильмы для пользователей {} и {}", userId, friendId);
+        return findAll(GET_COMMON_FILMS_QUERY, userId, friendId);
     }
 
     @Override
     public List<Film> getFilmsBySubstring(String query, String searchBy) {
+        log.info("получаем фильмы  по подстроке {}, поиск по {}", query, searchBy);
         String pattern = "%" + query + "%";
         if (searchBy.equals("director,title") || searchBy.equals("title,director")) {
             return findAll(GET_FILMS_AND_JOIN_DIRECTORS + "WHERE LOWER(director_name) LIKE LOWER(?) " +
