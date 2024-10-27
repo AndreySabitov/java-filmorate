@@ -51,6 +51,19 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                                         SELECT ul.FILM_ID
                                         FROM USER_LIKES ul
                                         WHERE USER_ID = ?);""");
+    private static final String GET_FILMS_BY_DIRECTOR = "SELECT f.film_id, title, description, release_date , duration, " +
+            "rating_id FROM films AS f LEFT OUTER JOIN (SELECT film_id, " +
+            "count(user_id) AS likes FROM user_likes GROUP BY film_id) AS ul ON f.film_id = ul.film_id WHERE f.film_id IN " +
+            "(SELECT film_id FROM films_directors WHERE director_id = ?) ORDER BY ";
+    private static final String GET_COMMON_FILMS_QUERY = """
+            SELECT f.FILM_ID, f.TITLE, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, f.RATING_ID
+                                        FROM FILMS f
+                                        LEFT JOIN USER_LIKES ul ON f.FILM_ID = ul.FILM_ID
+                                        WHERE f.FILM_ID IN (SELECT ul2.FILM_ID FROM USER_LIKES ul2 WHERE USER_ID = ?)
+                                          AND f.FILM_ID IN (SELECT ul3.FILM_ID FROM USER_LIKES ul3 WHERE USER_ID = ?)
+                                        GROUP BY f.FILM_ID
+                                        ORDER BY COUNT(ul.USER_ID) DESC;
+            """;
     private static final String GET_FILMS_BY_DIRECTOR = GET_ALL_FILMS_WITH_COUNT_LIKES
             .concat("WHERE f.film_id IN " +
                     "(SELECT film_id FROM films_directors WHERE director_id = ?) ");
@@ -123,6 +136,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
     @Override
     public List<Film> getMostPopularFilms(Integer count) {
+        log.info("получаем {} самых популярных фильмов", count);
         return findAll(GET_MOST_POPULAR_FILMS_QUERY, count);
     }
 
@@ -140,6 +154,13 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             orderBy = "ORDER BY count_likes DESC";
         }
         return findAll(GET_FILMS_BY_DIRECTOR + orderBy, dirId);
+    }
+
+
+    @Override
+    public List<Film> getCommonFilms(Integer userId, Integer friendId) {
+    log.info("получаем общие фильмы для пользователей {} и {}", userId, friendId);
+    return findAll(GET_COMMON_FILMS_QUERY, userId, friendId);
     }
 
     @Override
