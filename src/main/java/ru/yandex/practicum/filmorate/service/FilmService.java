@@ -108,4 +108,11 @@ public class FilmService {
         }
         log.info("Валидация прошла успешно");
     }
+
+    public List<Film> getCommonFilms(Integer userId, Integer friendId) {
+        List<Film> films = filmStorage.getCommonFilms(userId, friendId);
+        films.forEach(this::setFields);
+        return films;
+    }
+
 }
