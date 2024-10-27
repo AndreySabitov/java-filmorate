@@ -83,6 +83,12 @@ public class FilmService {
         return films;
     }
 
+    public List<Film> getFilmsBySubstring(String query, String searchBy) {
+        List<Film> films = filmStorage.getFilmsBySubstring(query, searchBy);
+        films.forEach(this::setFields);
+        return films;
+    }
+
     private void setFields(Film film) {
         int id = film.getId();
         film.getGenres().addAll(genreDbStorage.getGenresOfFilm(id));

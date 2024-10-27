@@ -21,15 +21,15 @@ import java.util.stream.Collectors;
 public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     private static final String GET_ALL_FILMS_QUERY = "SELECT * FROM films ";
     private static final String GET_FILM_BY_ID_QUERY = GET_ALL_FILMS_QUERY.concat("WHERE film_id = ?");
+    private static final String GET_ALL_FILMS_WITH_COUNT_LIKES = "SELECT f.film_id, title, description, " +
+            "release_date, duration, rating_id, count_likes FROM films AS f LEFT JOIN (SELECT film_id, " +
+            "count(user_id) AS count_likes FROM user_likes GROUP BY film_id) AS ul ON f.film_id = ul.film_id ";
     private static final String INSERT_FILM_QUERY = "INSERT INTO films (title, description, release_date, duration, " +
             "rating_id) VALUES(?,?,?,?,?)";
     private static final String UPDATE_FILM_QUERY = "UPDATE films SET title = ?, description = ?, release_date = ?, " +
             "duration = ?, rating_id = ? WHERE film_id = ?";
-    private static final String GET_MOST_POPULAR_FILMS_QUERY =
-            "SELECT f.FILM_ID AS FILM_ID, TITLE, DESCRIPTION, RELEASE_DATE, DURATION, rating_id FROM FILMS f " +
-                    "LEFT JOIN USER_LIKES ul ON f.FILM_ID = ul.FILM_ID " +
-                    "GROUP BY f.FILM_ID ORDER BY COUNT(user_id) DESC " +
-                    "LIMIT ?";
+    private static final String GET_MOST_POPULAR_FILMS_QUERY = GET_ALL_FILMS_WITH_COUNT_LIKES
+            .concat("ORDER BY count_likes DESC LIMIT ?");
     private static final String INSERT_FILM_GENRES_QUERY = "INSERT INTO films_genres (film_id, genre_id) VALUES (?, ?)";
     private static final String INSERT_FILM_DIRECTORS_QUERY = "INSERT INTO films_directors (film_id, director_id) " +
             "VALUES (?, ?)";
@@ -51,10 +51,12 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                                         SELECT ul.FILM_ID
                                         FROM USER_LIKES ul
                                         WHERE USER_ID = ?);""");
-    private static final String GET_FILMS_BY_DIRECTOR = "SELECT f.film_id, title, description, release_date , duration, " +
-            "rating_id FROM films AS f LEFT OUTER JOIN (SELECT film_id, " +
-            "count(user_id) AS likes FROM user_likes GROUP BY film_id) AS ul ON f.film_id = ul.film_id WHERE f.film_id IN " +
-            "(SELECT film_id FROM films_directors WHERE director_id = ?) ORDER BY ";
+    private static final String GET_FILMS_BY_DIRECTOR = GET_ALL_FILMS_WITH_COUNT_LIKES
+            .concat("WHERE f.film_id IN " +
+                    "(SELECT film_id FROM films_directors WHERE director_id = ?) ");
+    private static final String GET_FILMS_AND_JOIN_DIRECTORS = GET_ALL_FILMS_WITH_COUNT_LIKES
+            .concat("LEFT JOIN films_directors AS fd ON fd.film_id = f.film_id " +
+                    "LEFT JOIN directors AS d ON fd.director_id = d.director_id ");
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate, RowMapper<Film> mapper) {
         super(jdbcTemplate, mapper);
@@ -133,11 +135,25 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     public List<Film> getFilmsByDirector(Integer dirId, String sortBy) {
         String orderBy;
         if (sortBy.equals("year")) {
-            orderBy = "release_date";
+            orderBy = "ORDER BY release_date";
         } else {
-            orderBy = "likes DESC";
+            orderBy = "ORDER BY count_likes DESC";
         }
         return findAll(GET_FILMS_BY_DIRECTOR + orderBy, dirId);
     }
 
+    @Override
+    public List<Film> getFilmsBySubstring(String query, String searchBy) {
+        String pattern = "%" + query + "%";
+        if (searchBy.equals("director,title") || searchBy.equals("title,director")) {
+            return findAll(GET_FILMS_AND_JOIN_DIRECTORS + "WHERE LOWER(director_name) LIKE LOWER(?) " +
+                    "OR LOWER(title) LIKE LOWER(?) ORDER BY count_likes DESC", pattern, pattern);
+        } else if (searchBy.equals("title")) {
+            return findAll(GET_FILMS_AND_JOIN_DIRECTORS + "WHERE LOWER(title) LIKE LOWER(?) ORDER BY count_likes " +
+                    "DESC", pattern);
+        } else {
+            return findAll(GET_FILMS_AND_JOIN_DIRECTORS + "WHERE LOWER(director_name) LIKE LOWER(?) " +
+                    "ORDER BY count_likes DESC", pattern);
+        }
+    }
 }
