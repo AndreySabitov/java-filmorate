@@ -9,7 +9,6 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.model.enums.EventType;
 import ru.yandex.practicum.filmorate.model.enums.OperationType;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.film.filmLikes.LikeStorage;
 import ru.yandex.practicum.filmorate.storage.film.genre.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.film.rating.MpaStorage;
 import ru.yandex.practicum.filmorate.storage.history.HistoryDbStorage;
@@ -24,7 +23,6 @@ import java.util.List;
 public class UserService {
     private final UserStorage userStorage;
     private final FriendshipStorage friendshipDbStorage;
-    private final LikeStorage likeStorage;
     private final FilmStorage filmStorage;
     private final GenreStorage genreStorage;
     private final MpaStorage mpaStorage;
@@ -54,10 +52,6 @@ public class UserService {
 
     public User deleteUser(Integer userId) {
         User user = getUserById(userId);
-        friendshipDbStorage.deleteFriendshipOfUser(userId);
-        log.info("почистили дружбу пользователя");
-        likeStorage.deleteLikesOfUser(userId);
-        log.info("удалили лайки пользователя");
         userStorage.deleteUserById(userId);
         return user;
     }

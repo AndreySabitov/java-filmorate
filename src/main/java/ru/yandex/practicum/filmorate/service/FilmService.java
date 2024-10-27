@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.enums.EventType;
 import ru.yandex.practicum.filmorate.model.enums.OperationType;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.film.director.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.film.filmLikes.LikeStorage;
 import ru.yandex.practicum.filmorate.storage.film.genre.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.film.rating.MpaStorage;
@@ -25,20 +26,19 @@ public class FilmService {
     private final FilmStorage filmStorage;
     private final LikeStorage likeStorage;
     private final GenreStorage genreDbStorage;
+    private final DirectorStorage directorDbStorage;
     private final MpaStorage mpaStorage;
     private final HistoryDbStorage historyDbStorage;
 
     public List<Film> getFilms() {
         List<Film> films = filmStorage.getFilms();
-        films.forEach(this::setGenresAndMpa);
+        films.forEach(this::setFields);
         return films;
     }
 
     public Film getFilmById(Integer id) {
         Film film = filmStorage.getFilmById(id);
-        List<Genre> genres = genreDbStorage.getGenresOfFilm(id);
-        film.getGenres().addAll(genres);
-        film.setMpa(mpaStorage.getRatingOfFilm(id));
+        setFields(film);
         return film;
     }
 
@@ -61,9 +61,6 @@ public class FilmService {
 
     public Film deleteFilm(Integer filmId) {
         Film film = getFilmById(filmId);
-        likeStorage.deleteLikesOfFilm(filmId);
-        genreDbStorage.deleteGenresOfFilm(filmId);
-        log.info("удалили инфу о фильме из таблиц лайков и жанров");
         filmStorage.deleteFilm(filmId);
         return film;
     }
@@ -89,14 +86,21 @@ public class FilmService {
 
     public List<Film> getMostPopularFilms(Integer count) {
         List<Film> films = filmStorage.getMostPopularFilms(count);
-        films.forEach(this::setGenresAndMpa);
+        films.forEach(this::setFields);
         return films;
     }
 
-    private void setGenresAndMpa(Film film) {
+    public List<Film> getFilmsByDirector(Integer dirId, String sortBy) {
+        List<Film> films = filmStorage.getFilmsByDirector(dirId, sortBy);
+        films.forEach(this::setFields);
+        return films;
+    }
+
+    private void setFields(Film film) {
         int id = film.getId();
         film.getGenres().addAll(genreDbStorage.getGenresOfFilm(id));
         film.setMpa(mpaStorage.getRatingOfFilm(id));
+        film.getDirectors().addAll(directorDbStorage.getDirectorsOfFilm(id));
     }
 
     private void validateFilm(Film film) {
