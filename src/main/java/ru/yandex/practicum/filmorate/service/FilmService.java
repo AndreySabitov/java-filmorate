@@ -7,11 +7,14 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.enums.EventType;
+import ru.yandex.practicum.filmorate.model.enums.OperationType;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.film.director.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.film.filmLikes.LikeStorage;
 import ru.yandex.practicum.filmorate.storage.film.genre.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.film.rating.MpaStorage;
+import ru.yandex.practicum.filmorate.storage.history.HistoryDbStorage;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -25,6 +28,7 @@ public class FilmService {
     private final GenreStorage genreDbStorage;
     private final DirectorStorage directorDbStorage;
     private final MpaStorage mpaStorage;
+    private final HistoryDbStorage historyDbStorage;
 
     public List<Film> getFilms() {
         List<Film> films = filmStorage.getFilms();
@@ -63,11 +67,20 @@ public class FilmService {
 
     public Film addLike(Integer id, Integer userId) {
         likeStorage.addLike(id, userId);
+        historyDbStorage.saveHistoryEvent(userId, System.currentTimeMillis(), EventType.LIKE, OperationType.ADD, id);
+        log.info("событие добавлено в историю: добавлен лайк для фильма с id {}", id);
         return getFilmById(id);
     }
 
     public Film deleteLike(Integer id, Integer userId) {
         likeStorage.deleteLike(id, userId);
+        historyDbStorage.saveHistoryEvent(
+                userId,
+                System.currentTimeMillis(),
+                EventType.LIKE,
+                OperationType.REMOVE,
+                id);
+        log.info("событие добавлено в историю: удален лайк для фильма с id {}", id);
         return getFilmById(id);
     }
 
