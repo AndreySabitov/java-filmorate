@@ -111,7 +111,7 @@ public class FilmService {
 
     public List<Film> getCommonFilms(Integer userId, Integer friendId) {
         List<Film> films = filmStorage.getCommonFilms(userId, friendId);
-        films.forEach(this::setGenresAndMpa);
+        films.forEach(this::setFields);
         return films;
     }
 
