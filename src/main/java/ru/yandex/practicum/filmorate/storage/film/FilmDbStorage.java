@@ -73,6 +73,10 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                             JOIN directors AS d ON fd.director_id = d.director_id
                             WHERE LOWER(d.director_name) LIKE LOWER(?))
                     """);
+    private static final String GET_FILMS_BY_TITLE = GET_ALL_FILMS_WITH_COUNT_LIKES
+            .concat("WHERE LOWER(title) LIKE LOWER(?) ");
+    private static final String GET_FILMS_BY_TITLE_AND_DIRECTOR_NAME = GET_FILMS_BY_NAME_DIRECTOR
+            .concat(" OR LOWER(title) LIKE LOWER(?) ");
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate, RowMapper<Film> mapper) {
         super(jdbcTemplate, mapper);
@@ -149,7 +153,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     @Override
-    public List<Film> getFilmsByDirector(Integer dirId, String sortBy) {
+    public List<Film> getFilmsByIdDirector(Integer dirId, String sortBy) {
         log.info("получаем фильмы по режиссеру");
         String orderBy;
         if (sortBy.equals("year")) {
@@ -168,17 +172,17 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     @Override
-    public List<Film> getFilmsBySubstring(String query, String searchBy) {
-        log.info("получаем фильмы  по подстроке {}, поиск по {}", query, searchBy);
-        String pattern = "%" + query + "%";
-        if (searchBy.equals("director,title") || searchBy.equals("title,director")) {
-            return findAll(GET_FILMS_BY_NAME_DIRECTOR + " OR LOWER(title) LIKE LOWER(?) ORDER BY count_likes DESC",
-                    pattern, pattern);
-        } else if (searchBy.equals("title")) {
-            return findAll(GET_ALL_FILMS_WITH_COUNT_LIKES + "WHERE LOWER(title) LIKE LOWER(?) ORDER BY count_likes " +
-                    "DESC", pattern);
-        } else {
-            return findAll(GET_FILMS_BY_NAME_DIRECTOR + " ORDER BY count_likes DESC", pattern);
-        }
+    public List<Film> getFilmsByNameDirector(String pattern) {
+        return findAll(GET_FILMS_BY_NAME_DIRECTOR + " ORDER BY count_likes DESC", pattern);
+    }
+
+    @Override
+    public List<Film> getFilmsByTitle(String pattern) {
+        return findAll(GET_FILMS_BY_TITLE + " ORDER BY count_likes DESC", pattern);
+    }
+
+    @Override
+    public List<Film> getFilmsByTitleAndDirectorName(String pattern) {
+        return findAll(GET_FILMS_BY_TITLE_AND_DIRECTOR_NAME + " ORDER BY count_likes DESC", pattern, pattern);
     }
 }
