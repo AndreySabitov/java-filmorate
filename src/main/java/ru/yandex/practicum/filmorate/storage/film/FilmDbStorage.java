@@ -64,6 +64,14 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                                         GROUP BY f.FILM_ID
                                         ORDER BY COUNT(ul.USER_ID) DESC;
             """;
+    private static final String GET_MOST_POPULAR_FILMS_BY_GENRE_AND_YEAR =
+            """
+                    SELECT f.FILM_ID AS FILM_ID, TITLE, DESCRIPTION, RELEASE_DATE, DURATION, rating_id FROM FILMS f
+                    LEFT JOIN USER_LIKES ul ON f.FILM_ID = ul.FILM_ID
+                    GROUP BY f.FILM_ID
+                    %s
+                    ORDER BY COUNT(ul.user_id) DESC
+                    LIMIT ?;""";
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate, RowMapper<Film> mapper) {
         super(jdbcTemplate, mapper);
@@ -135,6 +143,11 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     @Override
+    public List<Film> getMostPopularByGenreAndYear(Integer count, String queryCondition) {
+        return findAll(String.format(GET_MOST_POPULAR_FILMS_BY_GENRE_AND_YEAR, queryCondition), count);
+    }
+
+    @Override
     public List<Film> getRecommendedFilms(Integer id) {
         return findAll(GET_RECOMMENDED_FILMS, id, id, id);
     }
@@ -150,11 +163,10 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         return findAll(GET_FILMS_BY_DIRECTOR + orderBy, dirId);
     }
 
-
     @Override
     public List<Film> getCommonFilms(Integer userId, Integer friendId) {
-    log.info("получаем общие фильмы для пользователей {} и {}", userId, friendId);
-    return findAll(GET_COMMON_FILMS_QUERY, userId, friendId);
+        log.info("получаем общие фильмы для пользователей {} и {}", userId, friendId);
+        return findAll(GET_COMMON_FILMS_QUERY, userId, friendId);
     }
 
 }

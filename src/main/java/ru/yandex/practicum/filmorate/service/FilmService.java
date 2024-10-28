@@ -18,6 +18,7 @@ import ru.yandex.practicum.filmorate.storage.history.HistoryDbStorage;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -84,8 +85,21 @@ public class FilmService {
         return getFilmById(id);
     }
 
-    public List<Film> getMostPopularFilms(Integer count) {
-        List<Film> films = filmStorage.getMostPopularFilms(count);
+    public List<Film> getMostPopularFilms(Integer count, Optional<Integer> genreId, Optional<Integer> year) {
+        String queryCondition;
+        if (genreId.isPresent() && year.isEmpty()) {
+            queryCondition = String.format("HAVING f.FILM_ID IN (SELECT FILM_ID FROM FILMS_GENRES fg " +
+                    "WHERE fg.genre_id = %d)", genreId.get());
+        } else if (year.isPresent() && genreId.isEmpty()) {
+            queryCondition = "HAVING EXTRACT(YEAR FROM CAST(f.RELEASE_DATE AS date)) = " + year.get();
+        } else if (genreId.isPresent() && year.isPresent()) {
+            queryCondition = String.format("HAVING f.FILM_ID IN (SELECT FILM_ID FROM FILMS_GENRES fg " +
+                            " WHERE fg.genre_id = %d) AND EXTRACT(YEAR FROM CAST(f.RELEASE_DATE AS date)) = %d",
+                    genreId.get(), year.get());
+        } else {
+            queryCondition = "";
+        }
+        List<Film> films = filmStorage.getMostPopularByGenreAndYear(count, queryCondition);
         films.forEach(this::setFields);
         return films;
     }
