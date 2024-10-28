@@ -64,12 +64,15 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                                         GROUP BY f.FILM_ID
                                         ORDER BY COUNT(ul.USER_ID) DESC;
             """;
-    private static final String GET_FILMS_BY_DIRECTOR = GET_ALL_FILMS_WITH_COUNT_LIKES
+    private static final String GET_FILMS_BY_ID_DIRECTOR = GET_ALL_FILMS_WITH_COUNT_LIKES
             .concat("WHERE f.film_id IN " +
                     "(SELECT film_id FROM films_directors WHERE director_id = ?) ");
-    private static final String GET_FILMS_AND_JOIN_DIRECTORS = GET_ALL_FILMS_WITH_COUNT_LIKES
-            .concat("LEFT JOIN films_directors AS fd ON fd.film_id = f.film_id " +
-                    "LEFT JOIN directors AS d ON fd.director_id = d.director_id ");
+    private static final String GET_FILMS_BY_NAME_DIRECTOR = GET_ALL_FILMS_WITH_COUNT_LIKES
+            .concat("""
+                            WHERE f.film_id IN (SELECT film_id FROM films_directors AS fd
+                            JOIN directors AS d ON fd.director_id = d.director_id
+                            WHERE LOWER(d.director_name) LIKE LOWER(?))
+                    """);
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate, RowMapper<Film> mapper) {
         super(jdbcTemplate, mapper);
@@ -154,7 +157,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         } else {
             orderBy = "ORDER BY count_likes DESC";
         }
-        return findAll(GET_FILMS_BY_DIRECTOR + orderBy, dirId);
+        return findAll(GET_FILMS_BY_ID_DIRECTOR + orderBy, dirId);
     }
 
 
@@ -169,14 +172,13 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         log.info("получаем фильмы  по подстроке {}, поиск по {}", query, searchBy);
         String pattern = "%" + query + "%";
         if (searchBy.equals("director,title") || searchBy.equals("title,director")) {
-            return findAll(GET_FILMS_AND_JOIN_DIRECTORS + "WHERE LOWER(director_name) LIKE LOWER(?) " +
-                    "OR LOWER(title) LIKE LOWER(?) ORDER BY count_likes DESC", pattern, pattern);
+            return findAll(GET_FILMS_BY_NAME_DIRECTOR + " OR LOWER(title) LIKE LOWER(?) ORDER BY count_likes DESC",
+                    pattern, pattern);
         } else if (searchBy.equals("title")) {
             return findAll(GET_ALL_FILMS_WITH_COUNT_LIKES + "WHERE LOWER(title) LIKE LOWER(?) ORDER BY count_likes " +
                     "DESC", pattern);
         } else {
-            return findAll(GET_FILMS_AND_JOIN_DIRECTORS + "WHERE LOWER(director_name) LIKE LOWER(?) " +
-                    "ORDER BY count_likes DESC", pattern);
+            return findAll(GET_FILMS_BY_NAME_DIRECTOR + " ORDER BY count_likes DESC", pattern);
         }
     }
 }
