@@ -172,7 +172,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             return findAll(GET_FILMS_AND_JOIN_DIRECTORS + "WHERE LOWER(director_name) LIKE LOWER(?) " +
                     "OR LOWER(title) LIKE LOWER(?) ORDER BY count_likes DESC", pattern, pattern);
         } else if (searchBy.equals("title")) {
-            return findAll(GET_FILMS_AND_JOIN_DIRECTORS + "WHERE LOWER(title) LIKE LOWER(?) ORDER BY count_likes " +
+            return findAll(GET_ALL_FILMS_WITH_COUNT_LIKES + "WHERE LOWER(title) LIKE LOWER(?) ORDER BY count_likes " +
                     "DESC", pattern);
         } else {
             return findAll(GET_FILMS_AND_JOIN_DIRECTORS + "WHERE LOWER(director_name) LIKE LOWER(?) " +
