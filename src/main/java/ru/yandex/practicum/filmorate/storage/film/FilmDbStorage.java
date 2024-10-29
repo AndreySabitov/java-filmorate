@@ -85,6 +85,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             .concat("WHERE LOWER(title) LIKE LOWER(?) ");
     private static final String GET_FILMS_BY_TITLE_AND_DIRECTOR_NAME = GET_FILMS_BY_NAME_DIRECTOR
             .concat(" OR LOWER(title) LIKE LOWER(?) ");
+    private static final String DELETE_GENRES_OF_FILM = "DELETE FROM films_genres WHERE film_id = ?";
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate, RowMapper<Film> mapper) {
         super(jdbcTemplate, mapper);
@@ -137,7 +138,8 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                 film.getMpa().getId(),
                 id
         );
-        film.getGenres().stream().map(Genre::getId)
+        delete(DELETE_GENRES_OF_FILM, id);
+        film.getGenres().stream().map(Genre::getId).collect(Collectors.toSet())
                 .forEach(integer -> update(INSERT_FILM_GENRES_QUERY, id, integer));
         film.getDirectors().stream().map(Director::getId).collect(Collectors.toSet())
                 .forEach(integer -> update(INSERT_FILM_DIRECTORS_QUERY, id, integer));
