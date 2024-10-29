@@ -103,6 +103,9 @@ public class FilmService {
     public List<Film> getFilmsByDirector(Integer dirId, String sortBy) {
         List<Film> films = filmStorage.getFilmsByIdDirector(dirId, sortBy);
         films.forEach(this::setFields);
+        if (films.isEmpty()) {
+           throw new NotFoundException("По переданному id режиссера: " + dirId +  " фильм не найден");
+        }
         return films;
     }
 
