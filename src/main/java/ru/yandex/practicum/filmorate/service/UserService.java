@@ -6,10 +6,12 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.enums.EventType;
+import ru.yandex.practicum.filmorate.model.enums.OperationType;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.film.filmLikes.LikeStorage;
 import ru.yandex.practicum.filmorate.storage.film.genre.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.film.rating.MpaStorage;
+import ru.yandex.practicum.filmorate.storage.history.HistoryDbStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 import ru.yandex.practicum.filmorate.storage.user.friendship.FriendshipStorage;
 
@@ -21,10 +23,10 @@ import java.util.List;
 public class UserService {
     private final UserStorage userStorage;
     private final FriendshipStorage friendshipDbStorage;
-    private final LikeStorage likeStorage;
     private final FilmStorage filmStorage;
     private final GenreStorage genreStorage;
     private final MpaStorage mpaStorage;
+    private final HistoryDbStorage historyDbStorage;
 
     public List<User> getUsers() {
         return userStorage.getUsers();
@@ -50,10 +52,6 @@ public class UserService {
 
     public User deleteUser(Integer userId) {
         User user = getUserById(userId);
-        friendshipDbStorage.deleteFriendshipOfUser(userId);
-        log.info("почистили дружбу пользователя");
-        likeStorage.deleteLikesOfUser(userId);
-        log.info("удалили лайки пользователя");
         userStorage.deleteUserById(userId);
         return user;
     }
@@ -63,6 +61,9 @@ public class UserService {
         userStorage.getUserById(id);
         userStorage.getUserById(friendId);
         friendshipDbStorage.addFriend(id, friendId);
+        historyDbStorage.saveHistoryEvent(id, System.currentTimeMillis(),
+                EventType.FRIEND, OperationType.ADD, friendId);
+        log.info("событие добавления в друзья сохранено в истории");
         return getUserById(id);
     }
 
@@ -70,6 +71,9 @@ public class UserService {
         userStorage.getUserById(id);
         userStorage.getUserById(friendId);
         friendshipDbStorage.deleteFriend(id, friendId);
+        historyDbStorage.saveHistoryEvent(id, System.currentTimeMillis(),
+                EventType.FRIEND, OperationType.REMOVE, friendId);
+        log.info("событие удаления из друзей сохранено в истории");
         return getUserById(id);
     }
 
