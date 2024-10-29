@@ -18,8 +18,7 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
     private static final String GET_ALL_QUERY = "SELECT * FROM reviews";
     private static final String ADD_NEW_REVIEW_QUERY = "INSERT INTO reviews (content, is_positive, user_id, film_id) " +
             "VALUES (?,?,?,?)";
-    private static final String UPDATE_REVIEW_QUERY = "UPDATE reviews SET content=?, is_positive=?, user_id=?, " +
-            " film_id=? WHERE id=?";
+    private static final String UPDATE_REVIEW_QUERY = "UPDATE reviews SET content=?, is_positive=? WHERE id=?";
     private static final String DELETE_REVIEW_QUERY = "DELETE FROM reviews WHERE id=?";
 
     public ReviewDbStorage(JdbcTemplate jdbcTemplate, RowMapper<Review> mapper) {
@@ -49,8 +48,6 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
                     UPDATE_REVIEW_QUERY,
                     updatedReview.getContent(),
                     updatedReview.getIsPositive(),
-                    updatedReview.getUserId(),
-                    updatedReview.getFilmId(),
                     updatedReview.getReviewId()
             );
         } catch (Exception e) {
@@ -58,7 +55,7 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
             throw new NotFoundException(String.format("отзыв под id=%s не найден", updatedReview.getReviewId()));
         }
         log.info("отзыв под id {} обновлен", updatedReview.getReviewId());
-        return updatedReview;
+        return getReviewById(updatedReview.getReviewId());
     }
 
     @Override
