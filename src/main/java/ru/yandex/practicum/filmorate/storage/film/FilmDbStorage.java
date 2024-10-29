@@ -156,7 +156,23 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     @Override
-    public List<Film> getMostPopularByGenreAndYear(Integer count, String queryCondition) {
+    public List<Film> getMostPopularByGenre(Integer count, Integer genreId) {
+        String queryCondition = String.format("HAVING f.FILM_ID IN (SELECT FILM_ID FROM FILMS_GENRES fg " +
+                "WHERE fg.genre_id = %d)", genreId);
+        return findAll(String.format(GET_MOST_POPULAR_FILMS_BY_GENRE_AND_YEAR, queryCondition), count);
+    }
+
+    @Override
+    public List<Film> getMostPopularByYear(Integer count, Integer year) {
+        String queryCondition = "HAVING EXTRACT(YEAR FROM CAST(f.RELEASE_DATE AS date)) = " + year;
+        return findAll(String.format(GET_MOST_POPULAR_FILMS_BY_GENRE_AND_YEAR, queryCondition), count);
+    }
+
+    @Override
+    public List<Film> getMostPopularByGenreAndYear(Integer count, Integer genreId, Integer year) {
+        String queryCondition = String.format("HAVING f.FILM_ID IN (SELECT FILM_ID FROM FILMS_GENRES fg " +
+                        " WHERE fg.genre_id = %d) AND EXTRACT(YEAR FROM CAST(f.RELEASE_DATE AS date)) = %d",
+                genreId, year);
         return findAll(String.format(GET_MOST_POPULAR_FILMS_BY_GENRE_AND_YEAR, queryCondition), count);
     }
 

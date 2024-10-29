@@ -86,20 +86,16 @@ public class FilmService {
     }
 
     public List<Film> getMostPopularFilms(Integer count, Optional<Integer> genreId, Optional<Integer> year) {
-        String queryCondition;
+        List<Film> films;
         if (genreId.isPresent() && year.isEmpty()) {
-            queryCondition = String.format("HAVING f.FILM_ID IN (SELECT FILM_ID FROM FILMS_GENRES fg " +
-                    "WHERE fg.genre_id = %d)", genreId.get());
+            films = filmStorage.getMostPopularByGenre(count, genreId.get());
         } else if (year.isPresent() && genreId.isEmpty()) {
-            queryCondition = "HAVING EXTRACT(YEAR FROM CAST(f.RELEASE_DATE AS date)) = " + year.get();
+            films = filmStorage.getMostPopularByYear(count, year.get());
         } else if (genreId.isPresent() && year.isPresent()) {
-            queryCondition = String.format("HAVING f.FILM_ID IN (SELECT FILM_ID FROM FILMS_GENRES fg " +
-                            " WHERE fg.genre_id = %d) AND EXTRACT(YEAR FROM CAST(f.RELEASE_DATE AS date)) = %d",
-                    genreId.get(), year.get());
+            films = filmStorage.getMostPopularByGenreAndYear(count, genreId.get(), year.get());
         } else {
-            queryCondition = "";
+            films = filmStorage.getMostPopularFilms(count);
         }
-        List<Film> films = filmStorage.getMostPopularByGenreAndYear(count, queryCondition);
         films.forEach(this::setFields);
         return films;
     }
