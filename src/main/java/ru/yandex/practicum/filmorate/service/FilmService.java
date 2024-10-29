@@ -105,7 +105,21 @@ public class FilmService {
     }
 
     public List<Film> getFilmsByDirector(Integer dirId, String sortBy) {
-        List<Film> films = filmStorage.getFilmsByDirector(dirId, sortBy);
+        List<Film> films = filmStorage.getFilmsByIdDirector(dirId, sortBy);
+        films.forEach(this::setFields);
+        return films;
+    }
+
+    public List<Film> getFilmsBySubstring(String query, String searchBy) {
+        String pattern = "%" + query + "%";
+        List<Film> films;
+        if (searchBy.equals("title")) {
+            films = filmStorage.getFilmsByTitle(pattern);
+        } else if (searchBy.equals("director")) {
+            films = filmStorage.getFilmsByNameDirector(pattern);
+        } else {
+            films = filmStorage.getFilmsByTitleAndDirectorName(pattern);
+        }
         films.forEach(this::setFields);
         return films;
     }
