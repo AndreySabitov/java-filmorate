@@ -15,6 +15,7 @@ import ru.yandex.practicum.filmorate.storage.film.filmLikes.LikeStorage;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -121,7 +122,8 @@ class FilmServiceTest {
         Film film2 = filmService.addFilm(Film.builder().name("name1").description("description1")
                 .releaseDate(LocalDate.of(2019, 10, 20)).duration(90)
                 .mpa(MPA.builder().id(2).build()).build());
-        List<Film> popularFilms = filmService.getMostPopularFilms(10);
+        List<Film> popularFilms = filmService.getMostPopularFilms(10,
+                Optional.empty(), Optional.empty());
         assertEquals(film1.getName(), popularFilms.getFirst().getName());
     }
 
@@ -129,7 +131,8 @@ class FilmServiceTest {
     void testCantAddFilmWithUnknownMpa() {
         assertThrows(ValidationException.class, () -> {
             filmService.addFilm(Film.builder().name("name")
-                    .description("description").releaseDate(LocalDate.of(2020, 10, 20)).duration(90)
+                    .description("description")
+                    .releaseDate(LocalDate.of(2020, 10, 20)).duration(90)
                     .mpa(MPA.builder().id(10).build()).build());
         });
     }

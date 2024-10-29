@@ -64,6 +64,14 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                                         GROUP BY f.FILM_ID
                                         ORDER BY COUNT(ul.USER_ID) DESC;
             """;
+    private static final String GET_MOST_POPULAR_FILMS_BY_GENRE_AND_YEAR =
+            """
+                    SELECT f.FILM_ID AS FILM_ID, TITLE, DESCRIPTION, RELEASE_DATE, DURATION, rating_id FROM FILMS f
+                    LEFT JOIN USER_LIKES ul ON f.FILM_ID = ul.FILM_ID
+                    GROUP BY f.FILM_ID
+                    %s
+                    ORDER BY COUNT(ul.user_id) DESC
+                    LIMIT ?;""";
     private static final String GET_FILMS_BY_ID_DIRECTOR = GET_ALL_FILMS_WITH_COUNT_LIKES
             .concat("WHERE f.film_id IN " +
                     "(SELECT film_id FROM films_directors WHERE director_id = ?) ");
@@ -148,6 +156,27 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     @Override
+    public List<Film> getMostPopularByGenre(Integer count, Integer genreId) {
+        String queryCondition = String.format("HAVING f.FILM_ID IN (SELECT FILM_ID FROM FILMS_GENRES fg " +
+                "WHERE fg.genre_id = %d)", genreId);
+        return findAll(String.format(GET_MOST_POPULAR_FILMS_BY_GENRE_AND_YEAR, queryCondition), count);
+    }
+
+    @Override
+    public List<Film> getMostPopularByYear(Integer count, Integer year) {
+        String queryCondition = "HAVING EXTRACT(YEAR FROM CAST(f.RELEASE_DATE AS date)) = " + year;
+        return findAll(String.format(GET_MOST_POPULAR_FILMS_BY_GENRE_AND_YEAR, queryCondition), count);
+    }
+
+    @Override
+    public List<Film> getMostPopularByGenreAndYear(Integer count, Integer genreId, Integer year) {
+        String queryCondition = String.format("HAVING f.FILM_ID IN (SELECT FILM_ID FROM FILMS_GENRES fg " +
+                        " WHERE fg.genre_id = %d) AND EXTRACT(YEAR FROM CAST(f.RELEASE_DATE AS date)) = %d",
+                genreId, year);
+        return findAll(String.format(GET_MOST_POPULAR_FILMS_BY_GENRE_AND_YEAR, queryCondition), count);
+    }
+
+    @Override
     public List<Film> getRecommendedFilms(Integer id) {
         return findAll(GET_RECOMMENDED_FILMS, id, id, id);
     }
@@ -163,7 +192,6 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         }
         return findAll(GET_FILMS_BY_ID_DIRECTOR + orderBy, dirId);
     }
-
 
     @Override
     public List<Film> getCommonFilms(Integer userId, Integer friendId) {

@@ -18,6 +18,7 @@ import ru.yandex.practicum.filmorate.storage.history.HistoryDbStorage;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -84,8 +85,17 @@ public class FilmService {
         return getFilmById(id);
     }
 
-    public List<Film> getMostPopularFilms(Integer count) {
-        List<Film> films = filmStorage.getMostPopularFilms(count);
+    public List<Film> getMostPopularFilms(Integer count, Optional<Integer> genreId, Optional<Integer> year) {
+        List<Film> films;
+        if (genreId.isPresent() && year.isEmpty()) {
+            films = filmStorage.getMostPopularByGenre(count, genreId.get());
+        } else if (year.isPresent() && genreId.isEmpty()) {
+            films = filmStorage.getMostPopularByYear(count, year.get());
+        } else if (genreId.isPresent() && year.isPresent()) {
+            films = filmStorage.getMostPopularByGenreAndYear(count, genreId.get(), year.get());
+        } else {
+            films = filmStorage.getMostPopularFilms(count);
+        }
         films.forEach(this::setFields);
         return films;
     }

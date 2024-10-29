@@ -23,6 +23,12 @@ public interface FilmStorage {
 
     List<Film> getCommonFilms(Integer userId, Integer friendId);
 
+    List<Film> getMostPopularByGenreAndYear(Integer count, Integer genreId, Integer year);
+
+    List<Film> getMostPopularByGenre(Integer count, Integer genreId);
+
+    List<Film> getMostPopularByYear(Integer count, Integer year);
+
     List<Film> getFilmsByNameDirector(String pattern);
 
     List<Film> getFilmsByTitle(String pattern);
