@@ -67,7 +67,11 @@ public class FilmService {
     }
 
     public Film addLike(Integer id, Integer userId) {
-        likeStorage.addLike(id, userId);
+        try {
+            likeStorage.addLike(id, userId);
+        } catch (Exception e) {
+            log.info("повторный лайк");
+        }
         historyDbStorage.saveHistoryEvent(userId, System.currentTimeMillis(), EventType.LIKE, OperationType.ADD, id);
         log.info("событие добавлено в историю: добавлен лайк для фильма с id {}", id);
         return getFilmById(id);
