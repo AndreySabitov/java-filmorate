@@ -18,6 +18,7 @@ import ru.yandex.practicum.filmorate.storage.history.HistoryDbStorage;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -66,7 +67,11 @@ public class FilmService {
     }
 
     public Film addLike(Integer id, Integer userId) {
-        likeStorage.addLike(id, userId);
+        try {
+            likeStorage.addLike(id, userId);
+        } catch (Exception e) {
+            log.info("повторный лайк");
+        }
         historyDbStorage.saveHistoryEvent(userId, System.currentTimeMillis(), EventType.LIKE, OperationType.ADD, id);
         log.info("событие добавлено в историю: добавлен лайк для фильма с id {}", id);
         return getFilmById(id);
@@ -84,14 +89,40 @@ public class FilmService {
         return getFilmById(id);
     }
 
-    public List<Film> getMostPopularFilms(Integer count) {
-        List<Film> films = filmStorage.getMostPopularFilms(count);
+    public List<Film> getMostPopularFilms(Integer count, Optional<Integer> genreId, Optional<Integer> year) {
+        List<Film> films;
+        if (genreId.isPresent() && year.isEmpty()) {
+            films = filmStorage.getMostPopularByGenre(count, genreId.get());
+        } else if (year.isPresent() && genreId.isEmpty()) {
+            films = filmStorage.getMostPopularByYear(count, year.get());
+        } else if (genreId.isPresent() && year.isPresent()) {
+            films = filmStorage.getMostPopularByGenreAndYear(count, genreId.get(), year.get());
+        } else {
+            films = filmStorage.getMostPopularFilms(count);
+        }
         films.forEach(this::setFields);
         return films;
     }
 
     public List<Film> getFilmsByDirector(Integer dirId, String sortBy) {
-        List<Film> films = filmStorage.getFilmsByDirector(dirId, sortBy);
+        List<Film> films = filmStorage.getFilmsByIdDirector(dirId, sortBy);
+        films.forEach(this::setFields);
+        if (films.isEmpty()) {
+           throw new NotFoundException("По переданному id режиссера: " + dirId +  " фильм не найден");
+        }
+        return films;
+    }
+
+    public List<Film> getFilmsBySubstring(String query, String searchBy) {
+        String pattern = "%" + query + "%";
+        List<Film> films;
+        if (searchBy.equals("title")) {
+            films = filmStorage.getFilmsByTitle(pattern);
+        } else if (searchBy.equals("director")) {
+            films = filmStorage.getFilmsByNameDirector(pattern);
+        } else {
+            films = filmStorage.getFilmsByTitleAndDirectorName(pattern);
+        }
         films.forEach(this::setFields);
         return films;
     }
@@ -121,4 +152,11 @@ public class FilmService {
         }
         log.info("Валидация прошла успешно");
     }
+
+    public List<Film> getCommonFilms(Integer userId, Integer friendId) {
+        List<Film> films = filmStorage.getCommonFilms(userId, friendId);
+        films.forEach(this::setFields);
+        return films;
+    }
+
 }
