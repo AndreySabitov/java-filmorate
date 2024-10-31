@@ -47,7 +47,7 @@ public class ReviewService {
         validateFields(newReview);
         Review review = reviewStorage.updateReview(newReview);
         historyDbStorage.saveHistoryEvent(
-                newReview.getUserId(),
+                review.getUserId(),
                 System.currentTimeMillis(),
                 EventType.REVIEW,
                 OperationType.UPDATE,
