@@ -15,7 +15,7 @@ public class ReviewMarkDbStorage implements ReviewMarkStorage {
 
     private static final String INSERT_QUERY = "INSERT INTO review_mark (review_id, user_id, is_positive) " +
             "VALUES (?, ?, ?)";
-    private static final String DELETE_QUERY = "DELETE review_mark WHERE review_id=?, user_id=?";
+    private static final String DELETE_QUERY = "DELETE review_mark WHERE review_id=? AND user_id=?";
     private static final String INCREASE_USEFULNESS_QUERY = "UPDATE reviews " +
             "SET usefulness_rate = usefulness_rate + 1 WHERE id = ?";
     private static final String DECREASE_USEFULNESS_QUERY = "UPDATE reviews " +
@@ -53,11 +53,11 @@ public class ReviewMarkDbStorage implements ReviewMarkStorage {
     @Override
     public boolean checkMarkByUserId(Integer reviewId, Integer userId, boolean isPositive) {
         log.info("Проверка на наличее пересекающейся оценки...");
-        final String checkMark = "SELECT * FROM review_mark WHERE review_id=? AND user_id=? AND is_positive NOT IN ?";
+        final String checkMark = "SELECT * FROM review_mark WHERE review_id = ? AND user_id = ? AND is_positive != ?";
         try {
             return jdbc.queryForObject(checkMark, mapper, reviewId, userId, isPositive) != null;
         } catch (Exception e) {
-            log.trace("Пересечения не найдено.");
+            log.info("Пересечения не найдено.");
             return false;
         }
     }
