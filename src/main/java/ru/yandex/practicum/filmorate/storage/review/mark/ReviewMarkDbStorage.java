@@ -13,12 +13,12 @@ import java.util.Optional;
 @AllArgsConstructor
 public class ReviewMarkDbStorage implements ReviewMarkStorage {
 
-    private final static String INSERT_QUERY = "INSERT INTO review_mark (review_id, user_id, is_positive) " +
+    private static final String INSERT_QUERY = "INSERT INTO review_mark (review_id, user_id, is_positive) " +
             "VALUES (?, ?, ?)";
-    private final static String DELETE_QUERY = "DELETE review_mark WHERE review_id=?, user_id=?";
-    private final static String INCREASE_USEFULNESS_QUERY = "UPDATE reviews " +
+    private static final String DELETE_QUERY = "DELETE review_mark WHERE review_id=?, user_id=?";
+    private static final String INCREASE_USEFULNESS_QUERY = "UPDATE reviews " +
             "SET usefulness_rate = usefulness_rate + 1 WHERE id = ?";
-    private final static String DECREASE_USEFULNESS_QUERY = "UPDATE reviews " +
+    private static final String DECREASE_USEFULNESS_QUERY = "UPDATE reviews " +
             "SET usefulness_rate = usefulness_rate - 1 WHERE id = ?";
 
     private final JdbcTemplate jdbc;
