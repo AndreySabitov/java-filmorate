@@ -26,6 +26,7 @@ public class ReviewService {
 
     public Review addNewReview(Review newReview) {
         try {
+            validateFields(newReview);
             Review addedReview = reviewStorage.addNewReview(newReview);
             historyDbStorage.saveHistoryEvent(
                     newReview.getUserId(),
@@ -45,9 +46,10 @@ public class ReviewService {
 
     public Review updateReview(Review newReview) {
         log.info("Обновление отзыва.");
+        validateFields(newReview);
         Review review = reviewStorage.updateReview(newReview);
         historyDbStorage.saveHistoryEvent(
-                newReview.getUserId(),
+                review.getUserId(),
                 System.currentTimeMillis(),
                 EventType.REVIEW,
                 OperationType.UPDATE,
@@ -110,5 +112,13 @@ public class ReviewService {
     public void removeReviewDislike(Integer reviewId, Integer userId) {
         log.info("Удаление дизлайка.");
         reviewDislikeStorage.removeReviewDislike(reviewId, userId);
+    }
+
+    private void validateFields(Review review) {
+        if (review.getUserId() <= 0) {
+            throw new NotFoundException("Id пользователя должен быть положительным");
+        } else if (review.getFilmId() <= 0) {
+            throw new NotFoundException("Id фильма должен быть положительным");
+        }
     }
 }
