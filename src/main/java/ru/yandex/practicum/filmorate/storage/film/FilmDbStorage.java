@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.enums.FilmSortBy;
 import ru.yandex.practicum.filmorate.storage.BaseDbStorage;
 
 import java.util.List;
@@ -186,10 +187,10 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     @Override
-    public List<Film> getFilmsByIdDirector(Integer dirId, String sortBy) {
+    public List<Film> getFilmsByIdDirector(Integer dirId, FilmSortBy sortBy) {
         log.info("получаем фильмы по режиссеру");
         String orderBy;
-        if (sortBy.equals("year")) {
+        if (sortBy == (FilmSortBy.YEAR)) {
             orderBy = "ORDER BY release_date";
         } else {
             orderBy = "ORDER BY count_likes DESC";

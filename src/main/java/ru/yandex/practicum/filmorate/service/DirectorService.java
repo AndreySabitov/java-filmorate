@@ -26,6 +26,7 @@ public class DirectorService {
     }
 
     public Director updateDirector(Director director) {
+        directorStorage.getDirectorById(director.getId());
         directorStorage.updateDirector(director);
         return director;
     }
