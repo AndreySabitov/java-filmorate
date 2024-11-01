@@ -8,6 +8,8 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.enums.EventType;
+import ru.yandex.practicum.filmorate.model.enums.FilmSearchBy;
+import ru.yandex.practicum.filmorate.model.enums.FilmSortBy;
 import ru.yandex.practicum.filmorate.model.enums.OperationType;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.film.director.DirectorStorage;
@@ -15,6 +17,7 @@ import ru.yandex.practicum.filmorate.storage.film.filmLikes.LikeStorage;
 import ru.yandex.practicum.filmorate.storage.film.genre.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.film.rating.MpaStorage;
 import ru.yandex.practicum.filmorate.storage.history.HistoryDbStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -30,6 +33,7 @@ public class FilmService {
     private final DirectorStorage directorDbStorage;
     private final MpaStorage mpaStorage;
     private final HistoryDbStorage historyDbStorage;
+    private final UserStorage userStorage;
 
     public List<Film> getFilms() {
         List<Film> films = filmStorage.getFilms();
@@ -104,24 +108,22 @@ public class FilmService {
         return films;
     }
 
-    public List<Film> getFilmsByDirector(Integer dirId, String sortBy) {
+    public List<Film> getFilmsByDirector(Integer dirId, FilmSortBy sortBy) {
         List<Film> films = filmStorage.getFilmsByIdDirector(dirId, sortBy);
         films.forEach(this::setFields);
         if (films.isEmpty()) {
-           throw new NotFoundException("По переданному id режиссера: " + dirId +  " фильм не найден");
+            throw new NotFoundException("По переданному id режиссера: " + dirId + " фильм не найден");
         }
         return films;
     }
 
-    public List<Film> getFilmsBySubstring(String query, String searchBy) {
+    public List<Film> getFilmsBySubstring(String query, FilmSearchBy searchBy) {
         String pattern = "%" + query + "%";
         List<Film> films;
-        if (searchBy.equals("title")) {
-            films = filmStorage.getFilmsByTitle(pattern);
-        } else if (searchBy.equals("director")) {
-            films = filmStorage.getFilmsByNameDirector(pattern);
-        } else {
-            films = filmStorage.getFilmsByTitleAndDirectorName(pattern);
+        switch (searchBy) {
+            case TITLE -> films = filmStorage.getFilmsByTitle(pattern);
+            case DIRECTOR -> films = filmStorage.getFilmsByNameDirector(pattern);
+            default -> films = filmStorage.getFilmsByTitleAndDirectorName(pattern);
         }
         films.forEach(this::setFields);
         return films;
@@ -154,6 +156,8 @@ public class FilmService {
     }
 
     public List<Film> getCommonFilms(Integer userId, Integer friendId) {
+        userStorage.getUserById(userId);
+        userStorage.getUserById(friendId);
         List<Film> films = filmStorage.getCommonFilms(userId, friendId);
         films.forEach(this::setFields);
         return films;

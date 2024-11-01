@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.enums.FilmSortBy;
 import ru.yandex.practicum.filmorate.storage.BaseDbStorage;
 
 import java.util.List;
@@ -38,23 +39,21 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     private static final String INSERT_FILM_DIRECTORS_QUERY = "INSERT INTO films_directors (film_id, director_id) " +
             "VALUES (?, ?)";
     private static final String DELETE_FILM_QUERY = "DELETE FROM films WHERE film_id = ?";
-    private static final String GET_RECOMMENDED_FILMS = GET_ALL_FILMS_QUERY
-            .concat("""
-                    f WHERE FILM_ID IN (SELECT UL2.FILM_ID
-                                        FROM USER_LIKES ul2
-                                        WHERE USER_ID = (SELECT USER_ID
-                                                         FROM USER_LIKES ul
-                                                         WHERE FILM_ID IN (SELECT film_id
-                                                                           FROM USER_LIKES ul
-                                                                           WHERE USER_ID = ?)
-                                                           AND USER_ID != ?
-                                                         GROUP BY USER_ID
-                                                         ORDER BY COUNT(FILM_ID) DESC
-                                                         LIMIT 1)
-                                        EXCEPT
-                                        SELECT ul.FILM_ID
-                                        FROM USER_LIKES ul
-                                        WHERE USER_ID = ?);""");
+    private static final String GET_RECOMMENDED_FILMS =
+            """
+                    SELECT f.*
+                    FROM FILMS f
+                    JOIN USER_LIKES ul ON f.FILM_ID = ul.FILM_ID
+                    WHERE ul.user_id = (SELECT ul.user_id
+                                        FROM USER_LIKES ul, USER_LIKES ul2
+                                        WHERE ul2.USER_ID = ?
+                                          AND ul.FILM_ID = ul2.FILM_ID
+                                        GROUP BY ul.user_id
+                                        HAVING ul.user_id != ?
+                                        LIMIT 1)
+                      AND ul.FILM_ID NOT IN (SELECT ul.FILM_ID
+                                             FROM USER_LIKES ul
+                                             WHERE USER_ID = ?);""";
     private static final String GET_COMMON_FILMS_QUERY = """
             SELECT f.FILM_ID, f.TITLE, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, f.RATING_ID
                                         FROM FILMS f
@@ -186,10 +185,10 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     @Override
-    public List<Film> getFilmsByIdDirector(Integer dirId, String sortBy) {
+    public List<Film> getFilmsByIdDirector(Integer dirId, FilmSortBy sortBy) {
         log.info("получаем фильмы по режиссеру");
         String orderBy;
-        if (sortBy.equals("year")) {
+        if (sortBy == (FilmSortBy.YEAR)) {
             orderBy = "ORDER BY release_date";
         } else {
             orderBy = "ORDER BY count_likes DESC";
