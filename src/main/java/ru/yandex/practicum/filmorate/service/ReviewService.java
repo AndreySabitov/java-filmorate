@@ -9,8 +9,7 @@ import ru.yandex.practicum.filmorate.model.enums.EventType;
 import ru.yandex.practicum.filmorate.model.enums.OperationType;
 import ru.yandex.practicum.filmorate.storage.history.HistoryDbStorage;
 import ru.yandex.practicum.filmorate.storage.review.ReviewStorage;
-import ru.yandex.practicum.filmorate.storage.review.dislike.ReviewDislikeStorage;
-import ru.yandex.practicum.filmorate.storage.review.like.ReviewLikeStorage;
+import ru.yandex.practicum.filmorate.storage.review.mark.ReviewMarkStorage;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,8 +19,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ReviewService {
     private final ReviewStorage reviewStorage;
-    private final ReviewLikeStorage reviewLikeStorage;
-    private final ReviewDislikeStorage reviewDislikeStorage;
+    private final ReviewMarkStorage reviewMarkStorage;
     private final HistoryDbStorage historyDbStorage;
 
     public Review addNewReview(Review newReview) {
@@ -88,32 +86,27 @@ public class ReviewService {
         }
     }
 
-    public void addReviewLike(Integer reviewId, Integer userId) {
-        if (reviewDislikeStorage.checkDislikeByUserId(reviewId, userId)) {
-            log.trace("Удаление пересекающегося дизлайка.");
-            reviewDislikeStorage.removeReviewDislike(reviewId, userId);
+    public void addReviewMark(Integer reviewId, Integer userId, boolean isPositive) {
+        if (isPositive) {
+            log.info("Добавление лайка.");
+            reviewMarkStorage.addReviewLike(reviewId, userId);
+        } else {
+            log.info("Добавление дизлайка.");
+            reviewMarkStorage.addReviewDislike(reviewId, userId);
         }
-        reviewLikeStorage.addReviewLike(reviewId, userId);
     }
 
-    public void removeReviewLike(Integer reviewId, Integer userId) {
-        log.info("Удаление лайка.");
-        reviewLikeStorage.removeReviewLike(reviewId, userId);
-    }
-
-    public void addReviewDislike(Integer reviewId, Integer userId) {
-        if (reviewLikeStorage.checkLikeByUserId(reviewId, userId)) {
-            log.trace("Удаление пересекающегося лайка.");
-            reviewLikeStorage.removeReviewLike(reviewId, userId);
+    public void removeReviewMark(Integer reviewId, Integer userId, boolean isPositive) {
+        if (isPositive) {
+            log.info("Удаление лайка.");
+            reviewMarkStorage.removeReviewLike(reviewId, userId);
+        } else {
+            log.info("Удаление дизлайка.");
+            reviewMarkStorage.removeReviewDislike(reviewId, userId);
         }
-        reviewDislikeStorage.addReviewDislike(reviewId, userId);
     }
 
-    public void removeReviewDislike(Integer reviewId, Integer userId) {
-        log.info("Удаление дизлайка.");
-        reviewDislikeStorage.removeReviewDislike(reviewId, userId);
-    }
-
+    //Костыль, лучше не трогать
     private void validateFields(Review review) {
         if (review.getUserId() <= 0) {
             throw new NotFoundException("Id пользователя должен быть положительным");

@@ -68,15 +68,10 @@ CREATE TABLE IF NOT EXISTS reviews (
     usefulness_rate int DEFAULT(0)
 );
 
-CREATE TABLE IF NOT EXISTS review_likes (
-    review_id INTEGER REFERENCES reviews(id) ON DELETE CASCADE,
-    user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
-    PRIMARY KEY (review_id, user_id)
-);
-
-CREATE TABLE IF NOT EXISTS review_dislikes (
-    review_id INTEGER REFERENCES reviews(id) ON DELETE CASCADE,
-    user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+CREATE TABLE IF NOT EXISTS review_mark (
+    review_id INTEGER NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    is_positive boolean NOT NULL,
     PRIMARY KEY (review_id, user_id)
 );
 

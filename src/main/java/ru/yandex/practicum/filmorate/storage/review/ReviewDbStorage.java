@@ -88,12 +88,8 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
 
     @Override
     public List<Review> getAllReviews() {
-        try {
-            log.info("Получение списка всех отзывов");
-            return findAll(GET_ALL_QUERY.concat(" ORDER BY usefulness_rate DESC"));
-        } catch (NotFoundException e) {
-            return new ArrayList<>();
-        }
+        log.info("Получение списка всех отзывов");
+        return findAll(GET_ALL_QUERY.concat(" ORDER BY usefulness_rate DESC"));
     }
 
     @Override
