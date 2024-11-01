@@ -17,6 +17,7 @@ import ru.yandex.practicum.filmorate.storage.film.filmLikes.LikeStorage;
 import ru.yandex.practicum.filmorate.storage.film.genre.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.film.rating.MpaStorage;
 import ru.yandex.practicum.filmorate.storage.history.HistoryDbStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -32,6 +33,7 @@ public class FilmService {
     private final DirectorStorage directorDbStorage;
     private final MpaStorage mpaStorage;
     private final HistoryDbStorage historyDbStorage;
+    private final UserStorage userStorage;
 
     public List<Film> getFilms() {
         List<Film> films = filmStorage.getFilms();
@@ -154,6 +156,8 @@ public class FilmService {
     }
 
     public List<Film> getCommonFilms(Integer userId, Integer friendId) {
+        userStorage.getUserById(userId);
+        userStorage.getUserById(friendId);
         List<Film> films = filmStorage.getCommonFilms(userId, friendId);
         films.forEach(this::setFields);
         return films;
