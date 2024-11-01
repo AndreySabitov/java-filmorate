@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.model.enums.OperationType;
 import ru.yandex.practicum.filmorate.storage.history.HistoryDbStorage;
 import ru.yandex.practicum.filmorate.storage.review.ReviewStorage;
 import ru.yandex.practicum.filmorate.storage.review.mark.ReviewMarkStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +21,7 @@ import java.util.Optional;
 public class ReviewService {
     private final ReviewStorage reviewStorage;
     private final ReviewMarkStorage reviewMarkStorage;
+    private final UserStorage userStorage;
     private final HistoryDbStorage historyDbStorage;
 
     public Review addNewReview(Review newReview) {
@@ -87,6 +89,7 @@ public class ReviewService {
     }
 
     public void addReviewMark(Integer reviewId, Integer userId, boolean isPositive) {
+        verifier(reviewId, userId);
         if (isPositive) {
             log.info("Добавление лайка.");
             reviewMarkStorage.addReviewLike(reviewId, userId);
@@ -97,6 +100,7 @@ public class ReviewService {
     }
 
     public void removeReviewMark(Integer reviewId, Integer userId, boolean isPositive) {
+        verifier(reviewId, userId);
         if (isPositive) {
             log.info("Удаление лайка.");
             reviewMarkStorage.removeReviewLike(reviewId, userId);
@@ -112,6 +116,16 @@ public class ReviewService {
             throw new NotFoundException("Id пользователя должен быть положительным");
         } else if (review.getFilmId() <= 0) {
             throw new NotFoundException("Id фильма должен быть положительным");
+        }
+    }
+
+    //Проверка на наличее юзера и отзыва под указанными id
+    private void verifier(Integer reviewId, Integer userId) {
+        getReviewById(reviewId);
+        try {
+            userStorage.getUserById(userId);
+        } catch (NotFoundException e) {
+            throw new NotFoundException(String.format("Пользователь c id=%s не найден", userId));
         }
     }
 }
