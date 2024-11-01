@@ -57,7 +57,7 @@ public class ReviewMarkDbStorage implements ReviewMarkStorage {
         try {
             return jdbc.queryForObject(checkMark, mapper, reviewId, userId, isPositive) != null;
         } catch (Exception e) {
-            log.info("Пересечения не найдено.");
+            log.debug("Пересечения не найдено.");
             return false;
         }
     }
