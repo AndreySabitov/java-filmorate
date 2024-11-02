@@ -10,4 +10,6 @@ public interface LikeStorage {
     List<UserLikes> getAllLikes();
 
     List<Integer> getIdsOfUserLikes(Integer id);
+
+    List<Integer> getLikesOfUser(Integer id);
 }

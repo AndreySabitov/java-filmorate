@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.BaseDbStorage;
 
@@ -14,16 +15,17 @@ import java.util.List;
 @Primary
 @Slf4j
 public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
-    private static final String GET_ALL_USERS_QUERY = "SELECT * FROM users";
-    private static final String GET_USER_BY_ID_QUERY = "SELECT * FROM users WHERE user_id = ?";
+    private static final String GET_ALL_USERS_QUERY = "SELECT * FROM users ";
+    private static final String GET_USER_BY_ID_QUERY = GET_ALL_USERS_QUERY.concat("WHERE user_id = ?");
     private static final String INSERT_NEW_USER_QUERY = "INSERT INTO users (email, login, user_name, birthday) " +
             "VALUES (?,?,?,?)";
     private static final String UPDATE_USER_QUERY = "UPDATE users SET email = ?, login = ?, user_name = ?, " +
             "birthday = ? WHERE user_id = ?";
-    private static final String GET_USER_FRIENDS_QUERY = "SELECT * FROM users " +
-            "WHERE user_id IN (SELECT user_id2 FROM friendship WHERE user_id1 = ?)";
+    private static final String GET_USER_FRIENDS_QUERY = GET_ALL_USERS_QUERY
+            .concat("WHERE user_id IN (SELECT user_id2 FROM friendship WHERE user_id1 = ?)");
     private static final String GET_MUTUAL_FRIENDS_QUERY = "SELECT * FROM users u, friendship f, friendship o " +
             "WHERE u.user_id = f.user_id2 AND u.user_id = o.user_id2 AND f.user_id1 = ? AND o.user_id1 = ?";
+    private static final String DELETE_USER_QUERY = "DELETE FROM users WHERE user_id = ?";
 
     public UserDbStorage(JdbcTemplate jdbcTemplate, RowMapper<User> mapper) {
         super(jdbcTemplate, mapper);
@@ -37,7 +39,11 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     @Override
     public User getUserById(Integer id) {
         log.info("поиск пльзователя по id из БД");
-        return findOne(GET_USER_BY_ID_QUERY, id);
+        try {
+            return findOne(GET_USER_BY_ID_QUERY, id);
+        } catch (Exception e) {
+            throw new NotFoundException("Пользователь не найден");
+        }
     }
 
     @Override
@@ -65,6 +71,11 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
                 user.getId()
         );
         return user;
+    }
+
+    @Override
+    public void deleteUserById(Integer userId) {
+        delete(DELETE_USER_QUERY, userId);
     }
 
     @Override

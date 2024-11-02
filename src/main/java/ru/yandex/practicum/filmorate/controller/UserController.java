@@ -5,7 +5,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.model.Event;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.FeedService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.List;
@@ -16,6 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final FeedService feedService;
 
     @GetMapping
     public List<User> getUsers() {
@@ -41,6 +45,11 @@ public class UserController {
         return userService.updateUser(user);
     }
 
+    @DeleteMapping("/{userId}")
+    public User deleteUser(@PathVariable Integer userId) {
+        return userService.deleteUser(userId);
+    }
+
     @PutMapping("/{id}/friends/{friendId}")
     public User addFriend(@PathVariable Integer id, @PathVariable Integer friendId) {
         log.info("запрос на добавление в друзья от пользователя {} пользователю {}", id, friendId);
@@ -63,5 +72,16 @@ public class UserController {
     public List<User> getMutualFriends(@PathVariable Integer id, @PathVariable Integer otherId) {
         log.info("запрос на получения списка общих друзей пользователей {} и {}", id, otherId);
         return userService.getMutualFriends(id, otherId);
+    }
+
+    @GetMapping("/{id}/recommendations")
+    public List<Film> getRecommendedFilms(@PathVariable Integer id) {
+        return userService.getRecommendedFilms(id);
+    }
+
+    @GetMapping("{id}/feed")
+    public List<Event> getFeed(@PathVariable("id") Integer id) {
+        log.info("запрос на получение ленты пользователя {}", id);
+        return feedService.getFeedForUser(id);
     }
 }
